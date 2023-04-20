@@ -1,4 +1,4 @@
-function y=ysim(X,a,b,g)
+function [Wn_tot, yr_tot]=wnyr(X,a,b,g)
 % Creates the model's predicction
 % y is the vector of outputs when evaluating the TS defined by a,b,g
 % X is the data matrix
@@ -14,7 +14,8 @@ function y=ysim(X,a,b,g)
 % NR is the number of rules of the TS model
 NR=size(a,1);         
 y=zeros(Nd,1);
-         
+Wn_tot = [];
+yr_tot = [];
      
 for k=1:Nd 
     
@@ -37,10 +38,15 @@ for k=1:Nd
     end
     
     % Now we evaluate the consequences
+   
     yr=g*[1 ;X(k,:)'];  
     
+    
+    Wn_tot = [Wn_tot;Wn];
+    
+    yr_tot = [yr_tot;yr'];
+    
     % Finally the output
-    y(k,1) = Wn*yr;
 %     if y(k) < 5
 %         y(k) = 0;
 %     end

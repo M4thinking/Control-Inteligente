@@ -75,3 +75,25 @@ plot(y_hat, 'r')
 
 legend('Valor real', 'Valor esperado')
 
+%% Modelo con intervalo de incertidumbre - Método de la covarianza
+% Se obtiene la matriz de covarianza de los datos de validación
+cov_mat = cov(-y_hat);
+
+% Se obtienen los pesos de la red neuronal
+%weights = net_optim.IW{1};
+
+% Se calcula la varianza del modelo
+variance = diag(x_optim_val * cov_mat * x_optim_val');
+
+% Se calcula el intervalo de incertidumbre para cada punto de validación
+interval = 1.96 * sqrt(variance);
+
+% Se grafica el modelo junto con el intervalo de incertidumbre
+figure()
+plot(Y_val, '.b')
+hold on
+plot(y_hat, 'r')
+plot(y_hat + interval, '--g')
+plot(y_hat - interval, '--g')
+legend('Valor real', 'Valor esperado', 'Intervalo de incertidumbre')
+
