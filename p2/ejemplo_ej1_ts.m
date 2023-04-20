@@ -79,7 +79,7 @@ legend('Valor real', 'Valor esperado')
 % Se obtiene la matriz de covarianza cov(yr_ent - yr_hat)
 [y_hat_val, wj_hat_val, yj_hat_val] = wnyr(x_optim_val, model.a, model.b, model.g);
 yj_val = wj_hat_val.*Y_val;
-delta_yj = sqrt(cov(yj - yj_hat_val));
+delta_yj = sqrt(cov(yj_val - yj_hat_val));
 
 % Intervalo de incertidumbre para cada regla en entrenamiento
 alphas = [];
@@ -103,26 +103,25 @@ t = 1:length(Y_ent);
 len = 1000; % Cambiar a length(Y_ent) para ver todos los datos.
 
 % Graficar intervalos de incertidumbre
-for i = 1:9
+for i = flip(1:9)
     alpha = alphas(i);
     y_sup = y_sups(1:len,i);
     y_inf = y_infs(1:len,i);
     t2 = [t(1:len), fliplr(t(1:len))];
     inBetween = [y_sup; flipud(y_inf)];
-    fill(t2, inBetween, [1 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
+    fill(t2, inBetween, [0.5 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
     hold on;
 end
 
 % Graficar curva de estimación y_hat_ent
 plot(t(1:len), y_hat_ent(1:len), 'r-', 'LineWidth', 1);
 hold on;
-
 % Graficar puntos Y_ent
 scatter(t(1:len), Y_ent(1:len), 5, 'b', 'filled');
 hold on;
-
 % Configuración de la gráfica
 xlabel('Variable independiente');
 ylabel('Variable dependiente');
 title('Modelo con intervalo de incertidumbre - Método de la covarianza');
-legend('Estimación', 'Datos de entrenamiento', 'Intervalos de incertidumbre');
+legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
+    'Estimación', 'Datos de entrenamiento', 'Intervalos de incertidumbre');
