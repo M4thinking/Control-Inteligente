@@ -1,4 +1,4 @@
-function [Wn_tot, yr_tot]=wnyr(X,a,b,g)
+function [y, Wn_tot, yr_tot]=wnyr(X,a,b,g)
 % Creates the model's predicction
 % y is the vector of outputs when evaluating the TS defined by a,b,g
 % X is the data matrix
@@ -41,9 +41,10 @@ for k=1:Nd
    
     yr=g*[1 ;X(k,:)'];  
     
+    y(k,1) = Wn*yr;
     
+    % Se agrega a la salida los pesos y las reglas separadas
     Wn_tot = [Wn_tot;Wn];
-    
     yr_tot = [yr_tot;yr'];
     
     % Finally the output

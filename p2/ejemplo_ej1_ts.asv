@@ -76,24 +76,53 @@ plot(y_hat, 'r')
 legend('Valor real', 'Valor esperado')
 
 %% Modelo con intervalo de incertidumbre - Método de la covarianza
-% Se obtiene la matriz de covarianza de los datos de validación
-cov_mat = cov(-y_hat);
+% Se obtiene la matriz de covarianza cov(yr_ent - yr_hat)
+[y_hat_val, wj_hat_val, yj_hat_val] = wnyr(x_optim_val, model.a, model.b, model.g);
+yj_val = wj_hat_val.*Y_val;
+delta_yj = sqrt(cov(yj - yj_hat_val));
 
-% Se obtienen los pesos de la red neuronal
-%weights = net_optim.IW{1};
+% Intervalo de incertidumbre para cada regla en entrenamiento
+alphas = [];
+y_sups = []; % Limite superior intervalo
+y_infs = []; % Limite inferior intervalo
+for porcentaje=1:9
+    alpha = 0;
+    n_total = 0;
+    while n_total < porcentaje/10.0
+        [_, y_sup; y_inf] = intervalos_cov(x_optim_ent, model.a, model.b, model.g, delta_yj;, alpha);
+        alpha = alpha + 0.001;
+        n_total = sum(y_inf<=Y_ent & Y_ent<=y_sup)/double(sum(length(Y_ent)));
+    end
+    y_sups = [y_sups, y_sup];
+    y_infs = [y_infs, y_inf];
+    alphas = [alphas, alpha];
+end
+%---------------------------------
 
-% Se calcula la varianza del modelo
-variance = diag(x_optim_val * cov_mat * x_optim_val');
+t = 1:length(Y_ent);
+len = 1000; % Cambiar a length(Y_ent) para ver todos los datos.
 
-% Se calcula el intervalo de incertidumbre para cada punto de validación
-interval = 1.96 * sqrt(variance);
+% Graficar intervalos de incertidumbre
+for i = 1:9
+    alpha = alphas(i);
+    y_sup = y_sups(1:len,i);
+    y_inf = y_infs(1:len,i);
+    t2 = [t(1:len), fliplr(t(1:len))];
+    inBetween = [y_sup; flipud(y_inf)];
+    fill(t2, inBetween, [1 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
+    hold on;
+end
 
-% Se grafica el modelo junto con el intervalo de incertidumbre
-figure()
-plot(Y_val, '.b')
-hold on
-plot(y_hat, 'r')
-plot(y_hat + interval, '--g')
-plot(y_hat - interval, '--g')
-legend('Valor real', 'Valor esperado', 'Intervalo de incertidumbre')
+% Graficar curva de estimación y_hat_ent
+plot(t(1:len), y_hat_ent(1:len), 'r-', 'LineWidth', 1);
+hold on;
 
+% Graficar puntos Y_ent
+scatter(t(1:len), Y_ent(1:len), 5, 'b', 'filled');
+hold on;
+
+% Configuración de la gráfica
+xlabel('Variable independiente');
+ylabel('Variable dependiente');
+title('Modelo con intervalo de incertidumbre - Método de la covarianza');
+legend('Estimación', 'Datos de entrenamiento', 'Intervalos de incertidumbre');
