@@ -1,10 +1,10 @@
 function aprbs = aprbsGen()
-    % generacion señal aprbs
+    % generacion seï¿½al aprbs
     Ts = 0.1 ; % tiempo de muestreo
     tau = 2;  % especificamos tiempo de establecimiento
     Ntau = tau/Ts; % cuantas muestras dan el t de establecimiento
-    % el ancho de cada pulso se moverá entre tau y 1.5 tau
-    Amax = 2;  % cotas de la señal
+    % el ancho de cada pulso se moverï¿½ entre tau y 1.5 tau
+    Amax = 2;  % cotas de la seï¿½al
     Amin = -2;  
     Tfinal = 1000; % tiempo total
 
@@ -30,7 +30,7 @@ function aprbs = aprbsGen()
         Asignal(k) = rand(1)*(Amax-Amin)+Amin ;
     end
 
-    % finalmente asignamos a la señal completa los valores
+    % finalmente asignamos a la seï¿½al completa los valores
     for j = 1:length(Nchanges)-1
         for i = Nchanges(j):Nchanges(j+1)-1
             Signal(i) = Asignal(j);
@@ -38,5 +38,8 @@ function aprbs = aprbsGen()
     end
     plot(Time, Signal(1:Nmuestras))
     grid('on')
+    title('SeÃ±al APRBS de Entrada')
+    xlabel('Tiempo')
+    ylabel('Entrada')
     aprbs = [Time',Signal(1:Nmuestras)'];
 end
