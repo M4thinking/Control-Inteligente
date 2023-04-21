@@ -52,7 +52,9 @@ plot(err_test, 'b')
 hold on
 plot(err_ent, 'r')
 legend('Error de test', 'Error de entrenamiento')
-
+title('Error en Función del Número de Reglas');
+xlabel('Número de Reglas')
+ylabel('Error Cuadrático Medio')
 %% Optimizar modelo - Regresores
 [p, indices] = sensibilidad(Y_ent, X_ent, best_clusters); % 2 es el numero de clusters elegido anteriormente
 % Elijo los regresores más importantes a partir del análisis anterior
@@ -74,6 +76,9 @@ hold on
 plot(y_hat, 'r')
 
 legend('Valor real', 'Valor esperado')
+xlabel('Tiempo')
+ylabel('Salida')
+hold off
 
 %% Modelo con intervalo de incertidumbre - Método de la covarianza
 % Se obtiene la matriz de covarianza cov(yr_ent - yr_hat)
@@ -114,14 +119,14 @@ for i = flip(1:9)
 end
 
 % Graficar curva de estimación y_hat_ent
-plot(t(1:len), y_hat_ent(1:len), 'r-', 'LineWidth', 1);
+plot(t(1:len), y_hat(1:len), 'r-', 'LineWidth', 1);
 hold on;
 % Graficar puntos Y_ent
 scatter(t(1:len), Y_ent(1:len), 5, 'b', 'filled');
 hold on;
 % Configuración de la gráfica
-xlabel('Variable independiente');
-ylabel('Variable dependiente');
+xlabel('Tiempo');
+ylabel('Salida');
 title('Modelo con intervalo de incertidumbre - Método de la covarianza');
 legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
     'Estimación', 'Datos de entrenamiento', 'Intervalos de incertidumbre');

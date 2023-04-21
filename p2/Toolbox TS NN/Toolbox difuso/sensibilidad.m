@@ -32,7 +32,7 @@ for j=1:length(Xent(:,1))
         for i=1:length(Xent(1,:))
             aux=muu(i,r,j);
             w(j,r)=w(j,r)*aux;
-        end
+            endcd
     end
 end
 %c ixrxj
@@ -94,6 +94,7 @@ p=find(indice==min(indice));
 %se grafican los indices obtenidos para compararse
 figure ()
 bar(indice)
+title('Sensibilidad de Cada Regresor')
 ylabel('Índice de sensibilidad')
 xlabel('Entrada del modelo')  
 end

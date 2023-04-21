@@ -38,7 +38,7 @@ function aprbs = aprbsGen()
     end
     plot(Time, Signal(1:Nmuestras))
     grid('on')
-    title('Señal APRBS de Entrada')
+    title(
     xlabel('Tiempo')
     ylabel('Entrada')
     aprbs = [Time',Signal(1:Nmuestras)'];
