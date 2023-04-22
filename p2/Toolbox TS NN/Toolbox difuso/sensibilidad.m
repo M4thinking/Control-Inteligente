@@ -32,7 +32,7 @@ for j=1:length(Xent(:,1))
         for i=1:length(Xent(1,:))
             aux=muu(i,r,j);
             w(j,r)=w(j,r)*aux;
-            endcd
+        end
     end
 end
 %c ixrxj
