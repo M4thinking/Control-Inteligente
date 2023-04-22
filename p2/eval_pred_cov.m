@@ -1,4 +1,4 @@
-function [yk, I_pred] = eval_pred(z_pred, y, model, std_ent, K, regs, n_pred)
+function [yk, I_pred] = eval_pred_cov(z_pred, y, model, std_ent, K, regs, n_pred)
     % Predicciones a 8 pasos con forloop para ysim. x_optim_val = [yk-1, yk-2, ..., yk-Ny, uk-1, uk-2, ..., uk-Nu] 
     uk = z_pred(:, regs+1); % uk = [uk-1, uk-2]
     yk = zeros(length(z_pred), n_pred); % [yk, yk+1, ..., yk+n_pred-1]

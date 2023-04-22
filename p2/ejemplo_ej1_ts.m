@@ -128,6 +128,7 @@ for i = flip(1:9)
     t2 = [t, fliplr(t)];
     inBetween = [y_sup; flipud(y_inf)];
     fill(t2, inBetween, [0.5 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
+    set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
     hold on;
 end
 % Graficar curva de estimación y_hat_val
@@ -141,20 +142,21 @@ xlabel('Tiempo');
 ylabel('Salida');
 title('Modelo con intervalo de incertidumbre - Método de la covarianza');
 legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
-    'Estimación', 'Datos de entrenamiento');
+    'Estimación', 'Datos de validación');
 
 %% Evaluar predicciones a 8 y 16 pasos para sintonizar alpha (Metodo A)
 n_pred = 16;
-regs = 2;
 z = x_optim_test;
 y = Y_test;
-[yk, I_pred] = eval_pred(z,y, model, std_ent, K, regs, n_pred);
+Nd = size(z,1);
+regs = size(z,2)/2;
+[yk, I_pred] = eval_pred_cov(z,y, model, std_ent, K, regs, n_pred);
 %% Intervalo de incertidumbre para 1,8 y 16 pasos
 alphas = zeros(3,9); % Alphas se entrenan en test
 
 preds = [1,8,16];
-nof_preds = length(preds);
-for idx=1:nof_preds
+Npreds = length(preds);
+for idx=1:Npreds
     pred = preds(idx);
     for porcentaje=1:9
         alpha = 0;
@@ -163,7 +165,7 @@ for idx=1:nof_preds
             y_sup = yk(:, pred) + alpha*I_pred(:, pred);
             y_inf = yk(:, pred) - alpha*I_pred(:, pred);
             alpha = alpha + 0.01;
-            n_total = sum(y_inf(1:end-pred)<=y(pred+1:end) & y(pred+1:end)<=y_sup(1:end-pred))/double(sum(length(y)));
+            n_total = sum(y_inf(1:end-pred)<=y(pred+1:end) & y(pred+1:end)<=y_sup(1:end-pred))/double(Nd-pred);
         end
         disp(porcentaje);
         alphas(idx, porcentaje) = alpha;
@@ -172,17 +174,17 @@ end
  
 %%
 % Graficar predicciones a 1,8,16 pasos con intervalos de incertidumbre + datos de validación
-preds = [1,8,16];
+preds = [1 8 16];
 colors = ['r', 'g', 'b'];
-nof_preds = length(preds);
+Npreds = size(preds,2);
 z = x_optim_val;
 y = Y_val;
-[yk, I_pred] = eval_pred(z,y, model, std_ent, K, regs, n_pred);
+[yk, I_pred] = eval_pred_cov(z,y, model, std_ent, K, regs, n_pred);
 figure()
-for idx=1:nof_preds
+for idx=1:Npreds
     disp(1);
     pred = preds(idx);
-    subplot(nof_preds,1,idx);
+    subplot(Npreds,1,idx);
     plot(1,1);
     % Graficar intervalos de incertidumbre
     t = 1:length(yk)-pred;
@@ -216,3 +218,38 @@ for idx=1:nof_preds
     legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
 end
+%% Condiciones iniciales
+alpha = 0.1; % 90% de los datos
+z = x_optim_ent;
+y = Y_ent;
+Nregs = size(z,2);
+Nrules = 2;
+nu1 = 10000; % Ponderador del PINAW
+nu2 = 3.5; % Ponderador del PICP
+nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+Ns = Nregs*2*(Nrules+1);
+% Problema de optimización
+% Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
+J=@(s)fobj_fuzzy_nums(z,model.a,model.b,model.g,s,y,nu1,nu2,nu3,alpha);
+% Optimización con Particle Swarm Optimization y restricciones
+options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
+[sopt, fopt] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
+
+%% Solución 
+z = x_optim_test;
+y = Y_test;
+[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,n3,alpha);
+
+%% Graficar estimación e intervalo
+t = 1:size(y_hat,1);
+figure();
+% Fill between y_sup e y_inf
+t2 = [t, fliplr(t)];
+inBetween = [y_inf; flipud(y_sup)];
+fill(t2, inBetween, [0.5 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
+% Quitar borde del fill
+set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
+hold on;
+plot(y_hat, 'r-', 'LineWidth', 1);
+hold on;
+plot(y, 'b.', 'LineWidth', 1);
