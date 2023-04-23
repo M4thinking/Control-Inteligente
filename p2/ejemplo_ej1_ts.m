@@ -1,6 +1,5 @@
 clear
 clc
-
 addpath("Toolbox TS NN/Toolbox difuso")
 %% Generación APRBS
 aprbs = aprbsGen();
@@ -20,7 +19,7 @@ max_clusters = 16;
 % [Y.val , Y.test, Y.ent, X.val, X.test, X.ent] = separar_datos(y, x, porcentajes);
 
 porcentajes=[0.6,0.2,0.2];
-[y ,x]=autoregresores(out.entrada,out.salida,max_regs);
+[y ,x] = autoregresores(out.entrada,out.salida,max_regs);
 [Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos(y, x, porcentajes);
 %% Optimizar modelo - Reglas
 [err_test, err_ent] = clusters_optimo(Y_test, Y_ent, X_test, X_ent, max_clusters);
@@ -146,13 +145,13 @@ legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
 
 %% Evaluar predicciones a 8 y 16 pasos para sintonizar alpha (Metodo A)
 n_pred = 16;
-z = x_optim_test;
+z = x_optim_test; % Hiperparámetros se entrenan en test
 y = Y_test;
 Nd = size(z,1);
 regs = size(z,2)/2;
 [yk, I_pred] = eval_pred_cov(z,y, model, std_ent, K, regs, n_pred);
-%% Intervalo de incertidumbre para 1,8 y 16 pasos
-alphas = zeros(3,9); % Alphas se entrenan en test
+%% Intervalo de incertidumbre para 1,8 y 16 pasos (Metodo de covarianza)
+alphas = zeros(3,9);
 
 preds = [1,8,16];
 Npreds = length(preds);
@@ -208,7 +207,7 @@ for idx=1:Npreds
     hold on;
     
     % Misma escala para todos los gráficos
-    limy = 5*max(abs(y));
+    limy = 4*max(abs(y));
     ylim([-limy, limy]);
     hold on;
     % Configuración de la gráfica
@@ -235,12 +234,10 @@ J=@(s)fobj_fuzzy_nums(z,model.a,model.b,model.g,s,y,nu1,nu2,nu3,alpha);
 options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
 [sopt, fopt] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
 
-%% Solución 
+%% Resultado preliminar de test
 z = x_optim_test;
 y = Y_test;
-[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,n3,alpha);
-
-%% Graficar estimación e intervalo
+[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
 t = 1:size(y_hat,1);
 figure();
 % Fill between y_sup e y_inf
@@ -253,3 +250,101 @@ hold on;
 plot(y_hat, 'r-', 'LineWidth', 1);
 hold on;
 plot(y, 'b.', 'LineWidth', 1);
+
+%% Intervalo de incertidumbre para 1,8 y 16 pasos (Números difusos) (DEMORA MUCHO ~20min)
+z = x_optim_test;
+y = Y_test;
+Nregs = size(z,2);
+Nrules = 2;
+nu1 = 10000; % Ponderador del PINAW
+nu2 = 3.5; % Ponderador del PICP
+nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+Ns = Nregs*2*(Nrules+1);
+preds = [1,8,16];
+Npreds = length(preds);
+ss = zeros(Ns, Npreds, 9);
+for idx=1:Npreds % Para cada predicción
+    Npred = preds(idx);
+    z_pred = x_optim_ent;
+    y = Y_ent;
+    % Evaluamos hasta la predicción
+    for i = 1:Npred
+        if i < Npred
+            [y_pred, z_pred] = ysim3(z_pred, model);
+        else
+            [y_pred, ~] = ysim3(z_pred, model); %Ultimo: No usamos siguiente z_pred
+        end
+    end
+    % Problema de optimización
+    for porcentaje=1:9 % Optimizamos para cada porcentaje
+        % Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
+        J=@(s)fobj_fuzzy_nums(z_pred,model.a,model.b,model.g,s,y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
+        % Particle Swarm Optimization y restricciones
+        options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
+        [sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), 8*ones(Ns,1), options);
+        ss(:,idx, porcentaje) = sopt;
+    end
+end 
+
+%% Guardar en archivo .mat
+save('ss.mat', 'ss');
+%% Cargar optimo (evitar espera)
+load('ss_opt.mat', 'ss');
+
+%% Resultado final en validación
+z = x_optim_val;
+y = Y_val;
+Nregs = size(z,2);
+Nrules = 2;
+nu1 = 10000; % Ponderador del PINAW
+nu2 = 3.5; % Ponderador del PICP
+nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+Ns = Nregs*2*(Nrules+1);
+preds = [1,8,16];
+Npreds = length(preds);
+figure()
+for idx=1:Npreds % Para cada predicción
+    Npred = preds(idx);
+    z_pred = x_optim_ent;
+    y = Y_ent;
+    % Evaluamos hasta la predicción
+    for i = 1:Npred
+        if i < Npred
+            [y_pred, z_pred] = ysim3(z_pred, model);
+        else
+            [y_pred, ~] = ysim3(z_pred, model); %Ultimo: No usamos siguiente z_pred
+        end
+    end
+    % Problema de optimización
+    subplot(3,1,idx);
+    for porcentaje=flip(1:9) % Optimizamos para cada porcentaje (al reves para el fill)
+        [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z_pred,model.a,model.b,model.g,ss(:,idx,porcentaje),y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
+        t = Npred+1:(Npred+size(y_hat,1));
+        t2 = [t, fliplr(t)];
+        inBetween = [y_sup; flipud(y_inf)];
+        fill(t2, inBetween, [0.5 (1-porcentaje/10.0) 1], 'FaceAlpha', (10-porcentaje)/12.0);
+        hold on;
+        % Quitar borde del fill
+        set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
+        hold on;
+    end
+
+    % Graficar puntos reales
+    plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
+    hold on;
+    % Graficar curva de estimación y_hat(k+i-1) (rojo oscuro)
+    plot(t, y_pred, 'Color',[0.8 0 0] , 'LineWidth', 0.5);
+    hold on;
+    
+    % Misma escala para todos los gráficos
+    limy = 1.5*max(abs(y));
+    ylim([-limy, limy]);
+    hold on;
+    % Configuración de la gráfica
+    xlabel('Tiempo'); 
+    ylabel('Salida');
+    title(sprintf('Modelo con intervalo de incertidumbre - Números difusos - %d pasos', pred));
+    legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
+        'y_{val}', 'y_{hat}', 'Orientation','horizontal');
+end
+

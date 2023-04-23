@@ -36,7 +36,7 @@ function [y_hat, y_sup, y_inf, PICP, PINAW, J] = eval_fuzzy_nums(z, a, b, g, s, 
     end
     y_sup = y_hat + f_sup;
     y_inf = y_hat - f_inf;
-    R = max(y_sup) - min(y_inf);
+    R = max(y) - min(y);
     PICP = sum(y_inf<=y & y<=y_sup)/double(Nd);
     PINAW = 1/double(Nd*R) * sum(y_sup-y_inf)*100;
     % Función de costo (Regularización)
