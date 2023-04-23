@@ -94,6 +94,7 @@ p=find(indice==min(indice));
 %se grafican los indices obtenidos para compararse
 figure ()
 bar(indice)
+title('Sensibilidad de Cada Regresor')
 ylabel('Índice de sensibilidad')
 xlabel('Entrada del modelo')  
 end
