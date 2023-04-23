@@ -38,6 +38,7 @@ porcentajes=[0.6,0.2,0.2];
 [y ,x]=autoregresores(out.entrada,out.salida,max_regs);
 [Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos(y, x, porcentajes);
 
+
 %% Optimizar modelo - Reglas
 
 % Se calcula el error de test para todas las configuraciones de neuronas en
