@@ -226,30 +226,24 @@ Nrules = 2;
 nu1 = 10000; % Ponderador del PINAW
 nu2 = 3.5; % Ponderador del PICP
 nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
-Ns = Nregs*2*(Nrules+1);
-% Problema de optimización
-% Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
-J=@(s)fobj_fuzzy_nums(z,model.a,model.b,model.g,s,y,nu1,nu2,nu3,alpha);
-% Optimización con Particle Swarm Optimization y restricciones
-options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
-[sopt, fopt] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
+Ns = Nregs*2*(Nrules+1); % Cantidad total de numeros difusos por modelo
 
 %% Resultado preliminar de test
-z = x_optim_test;
-y = Y_test;
-[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
-t = 1:size(y_hat,1);
-figure();
-% Fill between y_sup e y_inf
-t2 = [t, fliplr(t)];
-inBetween = [y_inf; flipud(y_sup)];
-fill(t2, inBetween, [0.5 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
-% Quitar borde del fill
-set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
-hold on;
-plot(y_hat, 'r-', 'LineWidth', 1);
-hold on;
-plot(y, 'b.', 'LineWidth', 1);
+% z = x_optim_test;
+% y = Y_test;
+% [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
+% t = 1:size(y_hat,1);
+% figure();
+% % Fill between y_sup e y_inf
+% t2 = [t, fliplr(t)];
+% inBetween = [y_inf; flipud(y_sup)];
+% fill(t2, inBetween, [0.5 (1-1/10.0) 1], 'FaceAlpha', (10-1)/12.0);
+% % Quitar borde del fill
+% set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
+% hold on;
+% plot(y_hat, 'r-', 'LineWidth', 1);
+% hold on;
+% plot(y, 'b.', 'LineWidth', 1);
 
 %% Intervalo de incertidumbre para 1,8 y 16 pasos (Números difusos) (DEMORA MUCHO ~20min)
 z = x_optim_test;
@@ -337,8 +331,8 @@ for idx=1:Npreds % Para cada predicción
     hold on;
     
     % Misma escala para todos los gráficos
-    limy = 1.5*max(abs(y));
-    ylim([-limy, limy]);
+    ylim([min(y), 1.5*max(y)]);
+    xlim([0,500]); % Para visualizar mejor
     hold on;
     % Configuración de la gráfica
     xlabel('Tiempo'); 
