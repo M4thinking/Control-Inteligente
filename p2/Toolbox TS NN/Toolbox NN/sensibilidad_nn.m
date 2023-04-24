@@ -1,4 +1,5 @@
 function [p, indice] = sensibilidad_nn(Xent,net)
+   
     [exported_ann_structure] = my_ann_exporter(net);
 
     % Parámetros para desnormalizar la salida entregada por la red
@@ -26,6 +27,8 @@ function [p, indice] = sensibilidad_nn(Xent,net)
     %se grafican los indices obtenidos para compararse
     figure ()
     bar(indice)
+    title('Sensibilidades de Regrsaores de Modelo Neuronal')
     ylabel('Índice de sensibilidad')
     xlabel('Entrada del modelo')      
+    
 end

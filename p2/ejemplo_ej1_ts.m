@@ -50,11 +50,56 @@ hold on
 plot(y_hat_test, 'r')
 
 legend('Valor real', 'Valor esperado')
+title('Predicción en test - Modelo Takagi Sugeno')
 xlabel('Tiempo')
 ylabel('Salida')
 hold off
 %% c) Métricas de desempeño
 % RMSE
+error_test_ts = mean((Y_test - y_hat_test).^2);
+% FIT
+fit_test_ts = 1 - (error_test_ts/var(Y_test));
+% MAE 
+mae_test_ts = mean(abs(Y_test - y_hat_test));
+
+disp(['   MSE test ', ' Fit test  ', 'MAE test'])
+disp([error_test_ts, fit_test_ts, mae_test_ts])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 error_test = mean((Y_test - y_hat_test).^2);
 % FIT
 fit_test = 1 - (error_test/var(Y_test));
@@ -62,6 +107,7 @@ fit_test = 1 - (error_test/var(Y_test));
 mae_ent = mean(abs(Y_test - y_hat_test));
 disp(['   MSE test ', ' Fit test  ', 'MAE test'])
 disp([error_test, fit_test, mae_ent])
+>>>>>>> acf1ccc61b895b221de4714009606177de9a8a04
 %% d) Parámetros de Intervalos Difusos - M. Covarianza
 z= x_optim_ent;
 y = Y_ent;
@@ -163,6 +209,28 @@ for idx=1:NNpreds % Para cada predicción
         ss(:,idx, porcentaje) = sopt;
     end
 end 
+
+%% Solución 
+z = x_optim_test;
+y = Y_test;
+[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
+
+%% Graficar estimación e intervalo
+t = 1:size(y_hat,1);
+figure();
+% Fill between y_sup e y_inf
+t2 = [t, fliplr(t)];
+inBetween = [y_inf; flipud(y_sup)];
+fill(t2, inBetween, [0.5 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
+% Quitar borde del fill
+set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
+hold on;
+plot(y_hat, 'r-', 'LineWidth', 1);
+hold on;
+plot(y, 'b.', 'LineWidth', 1);
+title('Modelo con intervalo de incertidumbre - Método de Números Difusos - 1 paso')
+xlabel('Tiempo')
+ylabel('salida')
 
 %% Guardar en archivo .mat
 save('ss.mat', 'ss');

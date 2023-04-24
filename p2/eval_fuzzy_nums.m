@@ -1,4 +1,3 @@
-
 function [y_hat, y_sup, y_inf, PICP, PINAW, J] = eval_fuzzy_nums(z, a, b, g, s, y, nu1, nu2, alpha)
     % Intervalos de inceridumbre - Método de números difusos
     % El problema consiste en optimizar J = nu1 * PINAW + exp(-nu2*(PICP-(1-alpha)))
