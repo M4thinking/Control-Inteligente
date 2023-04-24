@@ -5,7 +5,7 @@ clc
 addpath("Toolbox TS NN/Toolbox difuso")
 %% Generación APRBS
 y0 = [0; 0; pi-0.1; 0];
-Tfinal=600;
+Tfinal=1200;
 aprbs = aprbsGen(Tfinal);
 %% Correr simulink
 out = sim('ident_pendcart.slx');

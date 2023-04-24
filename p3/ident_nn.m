@@ -5,7 +5,7 @@ addpath("Toolbox TS NN/Toolbox NN")
 %% Generación APRBS
 
 y0 = [0; 0; pi-0.1; 0];
-Tfinal=600;
+Tfinal=1200;
 aprbs = aprbsGen(Tfinal);
 %% Correr simulink
 out = sim('ident_pendcart.slx');
@@ -23,7 +23,7 @@ out = sim('ident_pendcart.slx');
 % xlabel('Muestras')
 % ylabel('Grados [°C]')
 %% Parametros modelo
-max_regs = 7;
+max_regs = 10;
 max_regs_list = 1:max_regs;
 max_hlayer = 5:5:30;
 
@@ -78,14 +78,14 @@ ylabel('Error')
 hold off
 
 %% entrenamiento red para optimizar
-Nopt = 5;
+Nopt = 2;
 net_ent = fitnet(Nopt);
 net_ent.trainFcn = 'trainscg';  
 net_ent.trainParam.showWindow=0;
 net_ent = train(net_ent,X_ent',Y_ent', 'useParallel','yes');
 %% eleccion regresores por sensibilidad
 [p, indices] = sensibilidad_nn(X_ent, net_ent); % rules = numero de clusters
-n_regresores = 10; % Cambiar valor para mayor o menor número de regresores
+n_regresores = 14; % Cambiar valor para mayor o menor número de regresores
 best_indices = [];
 for i=1:n_regresores % Descartamos peor regresor
     [~, idx] = max(indices);
@@ -167,6 +167,7 @@ figure()
 for i=1:NNpreds
     Npred = Npreds(i);
     for j=1:Npred
+        disp(size(z))
         y_hat_ent = my_ann_evaluation(net_optim_structure, z');
         % z = [yk-1, yk-2, uk-1, uk-2]
         z = [y_hat_ent(1:end-1)', z(1:end-1, 1), z(2:end,3), z(2:end,4)];
