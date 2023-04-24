@@ -27,6 +27,7 @@ function [p, indice] = sensibilidad_nn(Xent,net)
     %se grafican los indices obtenidos para compararse
     figure ()
     bar(indice)
+    title('Sensibilidades de Regrsaores de Modelo Neuronal')
     ylabel('Índice de sensibilidad')
     xlabel('Entrada del modelo')      
     

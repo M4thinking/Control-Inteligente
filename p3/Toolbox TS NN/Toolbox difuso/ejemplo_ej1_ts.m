@@ -1,11 +1,11 @@
-%clear
+clear
 clc
 addpath("Toolbox TS NN/Toolbox difuso")
-%% a) Generación APRBS
+%% Generación APRBS
 aprbs = aprbsGen();
 %% Correr simulink
 out = sim('ident_model.slx');
-%% b) Parametros modelo
+%% Parametros modelo
 max_regs = 5;
 max_regs_list = 1:max_regs;
 max_clusters = 16;
@@ -13,6 +13,10 @@ max_clusters = 16;
 % Se cargan el vector Y de salida y la matriz X de regresores
 % Recordar que el orden de Y,X fue elegido arbitrariamente y su forma
 % dependera de cada implementacion
+
+% [y, x] = autoregresores(datos, max_regs);
+% 
+% [Y.val , Y.test, Y.ent, X.val, X.test, X.ent] = separar_datos(y, x, porcentajes);
 
 porcentajes=[0.6,0.2,0.2];
 [y ,x] = autoregresores(out.entrada,out.salida,max_regs);
@@ -45,7 +49,7 @@ x_optim_val = X_val(:, sort(best_indices, 'ascend'));
 %% Entrenar modelo
 [model, ~] = TakagiSugeno(Y_ent, x_optim_ent, rules, [1 2 2]);
 
-%% Estimación de la salida
+%% Predicciones
 y_hat_ent = ysim(x_optim_ent, model.a, model.b, model.g);
 y_hat_test = ysim(x_optim_test, model.a, model.b, model.g);
 y_hat_val = ysim(x_optim_val, model.a, model.b, model.g);
@@ -56,57 +60,10 @@ hold on
 plot(y_hat_test, 'r')
 
 legend('Valor real', 'Valor esperado')
-title('Predicción en test - Modelo Takagi Sugeno')
 xlabel('Tiempo')
 ylabel('Salida')
 hold off
-%% c) Métricas de desempeño
-% RMSE
-error_test_ts = mean((Y_test - y_hat_test).^2);
-% FIT
-fit_test_ts = 1 - (error_test_ts/var(Y_test));
-% MAE 
-mae_test_ts = mean(abs(Y_test - y_hat_test));
-
-disp(['   MSE test ', ' Fit test  ', 'MAE test'])
-disp([error_test_ts, fit_test_ts, mae_test_ts])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%% d) Parámetros de Intervalos Difusos - M. Covarianza
+%% Parámetros de Intervalos Difusos - M. Covarianza
 z = x_optim_ent;
 % [y, [h1,...,hj]] con j = número de reglas
 [y, h] = ysim2(z, model.a, model.b, model.g); % y: salida, h: grados de activación normalizado
@@ -260,49 +217,35 @@ for idx=1:Npreds
     legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 %% Condiciones iniciales
 alpha = 0.1; % 90% de los datos
 z = x_optim_ent;
 y = Y_ent;
 Nregs = size(z,2);
 Nrules = 2;
-nu1 = 10000; % Ponderador d el PINAW
+nu1 = 10000; % Ponderador del PINAW
 nu2 = 3.5; % Ponderador del PICP
 nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = Nregs*2*(Nrules+1); % Cantidad total de numeros difusos por modelo
 
+%% Resultado preliminar de test
+% z = x_optim_test;
+% y = Y_test;
+% [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
+% t = 1:size(y_hat,1);
+% figure();
+% % Fill between y_sup e y_inf
+% t2 = [t, fliplr(t)];
+% inBetween = [y_inf; flipud(y_sup)];
+% fill(t2, inBetween, [0.5 (1-1/10.0) 1], 'FaceAlpha', (10-1)/12.0);
+% % Quitar borde del fill
+% set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
+% hold on;
+% plot(y_hat, 'r-', 'LineWidth', 1);
+% hold on;
+% plot(y, 'b.', 'LineWidth', 1);
+
 %% Intervalo de incertidumbre para 1,8 y 16 pasos (Números difusos) (DEMORA MUCHO ~20min)
-pause
 z = x_optim_test;
 y = Y_test;
 Nregs = size(z,2);
@@ -311,7 +254,7 @@ nu1 = 10000; % Ponderador del PINAW
 nu2 = 3.5; % Ponderador del PICP
 nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = Nregs*2*(Nrules+1);
-preds = [8];
+preds = [1,8,16];
 Npreds = length(preds);
 ss = zeros(Ns, Npreds, 9);
 for idx=1:Npreds % Para cada predicción
@@ -337,29 +280,6 @@ for idx=1:Npreds % Para cada predicción
     end
 end 
 
-%<<<<<<< HEAD
-%% Solución 
-z = x_optim_test;
-y = Y_test;
-[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
-
-%% Graficar estimación e intervalo
-t = 1:size(y_hat,1);
-figure();
-% Fill between y_sup e y_inf
-t2 = [t, fliplr(t)];
-inBetween = [y_inf; flipud(y_sup)];
-fill(t2, inBetween, [0.5 (1-i/10.0) 1], 'FaceAlpha', (10-i)/12.0);
-% Quitar borde del fill
-set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
-hold on;
-plot(y_hat, 'r-', 'LineWidth', 1);
-hold on;
-plot(y, 'b.', 'LineWidth', 1);
-title('Modelo con intervalo de incertidumbre - Método de Números Difusos - 1 paso')
-xlabel('Tiempo')
-ylabel('salida')
-%=======
 %% Guardar en archivo .mat
 save('ss.mat', 'ss');
 %% Cargar optimo (evitar espera)
@@ -422,6 +342,3 @@ for idx=1:Npreds % Para cada predicción
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
 end
 
-%% Comparación de intervalos de incertidumbre (métricas para cada predicción)
-
-%>>>>>>> 27c5212fcdd72787f74f1566c4ff261d18997b91

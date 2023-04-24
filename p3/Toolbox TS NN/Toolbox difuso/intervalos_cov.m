@@ -1,5 +1,5 @@
 function [y_hat, I] = intervalos_cov(z, a, b, g, std, K)
-    % Se obtiene estimación de modelo T-S y su intervalo
+    % Se obite estimación de modelo T-S y su intervalo
     [y_hat, h] = ysim2(z, a, b, g); %h:(Nd, NR)
     rules = size(std,1);
     Nd = size(z,1);
@@ -10,6 +10,7 @@ function [y_hat, I] = intervalos_cov(z, a, b, g, std, K)
             dy(i,j) = std(j)*sqrt(1 + Pij'*K(:,:,j)*Pij);
         end
     end
+
     I = zeros(Nd,1);
     for j = 1:rules
         I = I + h(:,j).*dy(:,j);

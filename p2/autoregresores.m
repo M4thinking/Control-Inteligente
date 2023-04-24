@@ -12,6 +12,5 @@ for i=1:n
 end
 
 Y = salida(n+1:N);
-
 end
 
