@@ -1,11 +1,11 @@
 clear
 clc
 addpath("Toolbox TS NN/Toolbox difuso")
-%% Generación APRBS
+%% a) Generación APRBS
 aprbs = aprbsGen();
 %% Correr simulink
 out = sim('ident_model.slx');
-%% Parametros modelo
+%% b) Parametros modelo
 max_regs = 5;
 max_regs_list = 1:max_regs;
 max_clusters = 16;
@@ -13,10 +13,6 @@ max_clusters = 16;
 % Se cargan el vector Y de salida y la matriz X de regresores
 % Recordar que el orden de Y,X fue elegido arbitrariamente y su forma
 % dependera de cada implementacion
-
-% [y, x] = autoregresores(datos, max_regs);
-% 
-% [Y.val , Y.test, Y.ent, X.val, X.test, X.ent] = separar_datos(y, x, porcentajes);
 
 porcentajes=[0.6,0.2,0.2];
 [y ,x] = autoregresores(out.entrada,out.salida,max_regs);
@@ -49,7 +45,7 @@ x_optim_val = X_val(:, sort(best_indices, 'ascend'));
 %% Entrenar modelo
 [model, ~] = TakagiSugeno(Y_ent, x_optim_ent, rules, [1 2 2]);
 
-%% Predicciones
+%% Estimación de la salida
 y_hat_ent = ysim(x_optim_ent, model.a, model.b, model.g);
 y_hat_test = ysim(x_optim_test, model.a, model.b, model.g);
 y_hat_val = ysim(x_optim_val, model.a, model.b, model.g);
@@ -63,7 +59,52 @@ legend('Valor real', 'Valor esperado')
 xlabel('Tiempo')
 ylabel('Salida')
 hold off
-%% Parámetros de Intervalos Difusos - M. Covarianza
+%% c) Métricas de desempeño
+% RMSE
+error_ent = mean((Y_ent - y_hat_ent).^2);
+% FIT
+fit_ent = 1 - (error_ent/var(Y_ent));
+% MAE 
+mae_ent = mean(abs(Y_ent - y_hat_ent));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% d) Parámetros de Intervalos Difusos - M. Covarianza
 z = x_optim_ent;
 % [y, [h1,...,hj]] con j = número de reglas
 [y, h] = ysim2(z, model.a, model.b, model.g); % y: salida, h: grados de activación normalizado
@@ -217,6 +258,36 @@ for idx=1:Npreds
     legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% Condiciones iniciales
 alpha = 0.1; % 90% de los datos
 z = x_optim_ent;
@@ -228,24 +299,8 @@ nu2 = 3.5; % Ponderador del PICP
 nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = Nregs*2*(Nrules+1); % Cantidad total de numeros difusos por modelo
 
-%% Resultado preliminar de test
-% z = x_optim_test;
-% y = Y_test;
-% [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
-% t = 1:size(y_hat,1);
-% figure();
-% % Fill between y_sup e y_inf
-% t2 = [t, fliplr(t)];
-% inBetween = [y_inf; flipud(y_sup)];
-% fill(t2, inBetween, [0.5 (1-1/10.0) 1], 'FaceAlpha', (10-1)/12.0);
-% % Quitar borde del fill
-% set(findobj(gca,'Type','Patch'),'EdgeColor', 'none');
-% hold on;
-% plot(y_hat, 'r-', 'LineWidth', 1);
-% hold on;
-% plot(y, 'b.', 'LineWidth', 1);
-
 %% Intervalo de incertidumbre para 1,8 y 16 pasos (Números difusos) (DEMORA MUCHO ~20min)
+pause
 z = x_optim_test;
 y = Y_test;
 Nregs = size(z,2);
@@ -341,4 +396,6 @@ for idx=1:Npreds % Para cada predicción
     legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
 end
+
+%% Comparación de intervalos de incertidumbre (métricas para cada predicción)
 
