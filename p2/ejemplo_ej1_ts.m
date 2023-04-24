@@ -238,7 +238,7 @@ options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
 %% Solución 
 z = x_optim_test;
 y = Y_test;
-[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,n3,alpha);
+[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z,model.a,model.b,model.g,sopt,y,nu1,nu2,nu3,alpha);
 
 %% Graficar estimación e intervalo
 t = 1:size(y_hat,1);
@@ -253,3 +253,6 @@ hold on;
 plot(y_hat, 'r-', 'LineWidth', 1);
 hold on;
 plot(y, 'b.', 'LineWidth', 1);
+title('Modelo con intervalo de incertidumbre - Método de Números Difusos - 1 paso')
+xlabel('Tiempo')
+ylabel('salida')

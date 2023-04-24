@@ -1,5 +1,5 @@
 
-function [y_hat, y_sup, y_inf, PICP, PINAW, J] = eval_fuzzy_nums(z, a, b, g, s, y, nu1, nu2, n3, alpha)
+function [y_hat, y_sup, y_inf, PICP, PINAW, J] = eval_fuzzy_nums(z, a, b, g, s, y, nu1, nu2, nu3, alpha)
     % Intervalos de inceridumbre - Método de números difusos
     % El problema consiste en optimizar J = nu1 * PINAW + exp(-nu2*(PICP-(1-alpha)))
     % respecto a: s_inf(k+j) y s_sup(k+j)
@@ -40,5 +40,5 @@ function [y_hat, y_sup, y_inf, PICP, PINAW, J] = eval_fuzzy_nums(z, a, b, g, s, 
     PICP = sum(y_inf<=y & y<=y_sup)/double(Nd);
     PINAW = 1/double(Nd*R) * sum(y_sup-y_inf)*100;
     % Función de costo (Regularización)
-    J = nu1*PINAW + exp(-nu2*(PICP - (1-alpha))*100) + n3*sum(s(:).^2);
+    J = nu1*PINAW + exp(-nu2*(PICP - (1-alpha))*100) + nu3*sum(s(:).^2);
 end
