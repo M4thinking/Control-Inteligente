@@ -1,4 +1,4 @@
-function aprbs = aprbsGen()
+function aprbs = aprbsGen(Tfinal)
     % generacion se�al aprbs
     Ts = 0.1 ; % tiempo de muestreo
     tau = 6;  % especificamos tiempo de establecimiento
@@ -6,9 +6,8 @@ function aprbs = aprbsGen()
     % el ancho de cada pulso se mover� entre tau y 1.5 tau
     Amax = pi+0.1;  % cotas de la se�al
     Amin = pi-0.1;  
-    Tfinal = 60; % tiempo total
 
-    Time = 0.1:Ts:Tfinal;
+    Time = Ts:Ts:Tfinal;
     Nmuestras = length(Time);
     Signal = zeros(1,Nmuestras);
 
