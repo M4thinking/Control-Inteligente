@@ -3,6 +3,7 @@ function [yk, zk] = ysim3(z, model)
     yk = ysim(z, model.a, model.b, model.g);
     regs = size(z,2)/2;
     % zk = y(k|k-1),y(k-1|k-1),u(k-1+1), u(k-2+1).
-    % Primera entrada ya no se usa.
-    zk = [yk(1:end-1), z(1:end-1, 1), z(2:end, 3), z(2:end, 4)];
+    % y se corre a la derecha y se le quita la ultima entrada.
+    % u se eliminan primeras entradas.
+    zk = [yk(1:end-1), z(1:end-1, 1:regs-1), z(2:end, regs+1:2*regs)];
     yk = yk(1:end); % Ultima entrada no se puede usar sin saber u actual.
