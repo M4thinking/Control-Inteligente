@@ -1,6 +1,7 @@
 clear
 clc
 
+
 addpath("Toolbox TS NN/Toolbox difuso")
 %% Generación APRBS
 y0 = [0; 0; pi-0.1; 0];
@@ -9,9 +10,9 @@ aprbs = aprbsGen(Tfinal);
 %% Correr simulink
 out = sim('ident_pendcart.slx');
 %% Parametros modelo
-max_regs =16;
+max_regs =10;
 max_regs_list = 1:max_regs;
-max_clusters = 16;
+max_clusters = 18;
 
 % Se cargan el vector Y de salida y la matriz X de regresores
 % Recordar que el orden de Y,X fue elegido arbitrariamente y su forma
@@ -31,7 +32,7 @@ porcentajes=[0.6,0.2,0.2];
 [Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos(y, x, porcentajes);
 %% Optimizar modelo - Reglas
 [err_test, err_ent] = clusters_optimo(Y_test, Y_ent, X_test, X_ent, max_clusters);
-rules = 4; % Criterio del codo
+rules = 13; % Criterio del codo
 figure()
 plot(err_test, 'b')
 hold on
@@ -41,8 +42,8 @@ title('Error en Función del Número de Reglas');
 xlabel('Número de Reglas')
 ylabel('Error Cuadrático Medio')
 %% Optimizar modelo - Regresores
-[p, indices] = sensibilidad(Y_ent, X_ent, rules); % rules = numero de clusters
-n_regresores = 16; % Cambiar valor para mayor o menor número de regresores
+[p, indices] = sensibilidad(Y_ent, X_ent,rules); % rules = numero de clusters
+n_regresores = 30; % Cambiar valor para mayor o menor número de regresores
 best_indices = [];
 for i=1:n_regresores % Descartamos peor regresor
     [~, idx] = max(indices);
@@ -55,7 +56,7 @@ x_optim_test = X_test(:, sort(best_indices, 'ascend'));
 x_optim_val = X_val(:, sort(best_indices, 'ascend'));
 
 %% Entrenar modelo
-[model, ~] = TakagiSugeno(Y_ent, x_optim_ent, rules, [1 2 2]);
+[model, ~] = TakagiSugeno(Y_ent, x_optim_ent, 15, [1 2 2]);
 
 %% Predicciones
 y_hat_ent = ysim(x_optim_ent, model.a, model.b, model.g);
@@ -225,6 +226,8 @@ for idx=1:Npreds
     legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
 end
+
+
 %% Condiciones iniciales
 alpha = 0.1; % 90% de los datos
 z = x_optim_ent;
@@ -257,12 +260,12 @@ Ns = Nregs*2*(Nrules+1); % Cantidad total de numeros difusos por modelo
 z = x_optim_test;
 y = Y_test;
 Nregs = size(z,2);
-Nrules = 4;
+Nrules = 13;
 nu1 = 10000; % Ponderador del PINAW
 nu2 = 3.5; % Ponderador del PICP
 nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = Nregs*2*(Nrules+1);
-preds = [1,8,16];
+preds = [1,3,7];
 Npreds = length(preds);
 ss = zeros(Ns, Npreds, 9);
 for idx=1:Npreds % Para cada predicción
@@ -300,11 +303,11 @@ z = x_optim_val;
 y = Y_val;
 Nregs = size(z,2);
 Nrules = 4;
-nu1 = 10000; % Ponderador del PINAW
+nu1 = 10; % Ponderador del PINAW
 nu2 = 3.5; % Ponderador del PICP
 nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = Nregs*2*(Nrules+1);
-preds = [1,8,16];
+preds = [1,3,7];
 Npreds = length(preds);
 figure()
 for idx=1:Npreds % Para cada predicción
@@ -351,3 +354,28 @@ for idx=1:Npreds % Para cada predicción
     legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
 end
+
+%% jugando
+
+Npred=7;
+
+z_pred = x_optim_test;
+
+for i = 1:Npred
+      if i < Npred
+         disp(size(z_pred))
+         [y_pred, z_pred] = ysim3(z_pred, model);
+         disp(size(z_pred))
+      else
+         [y_pred, ~] = ysim3(z_pred, model); %Ultimo: No usamos siguiente z_pred
+      end
+end
+plot(y_pred, 'r-', 'LineWidth', 1);
+hold on;
+plot(Y_test, 'b.', 'LineWidth', 1);
+
+%% Graficowos
+
+
+
+
