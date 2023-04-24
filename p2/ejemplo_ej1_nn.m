@@ -39,22 +39,6 @@ porcentajes=[0.6,0.2,0.2];
 [Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos(y, x, porcentajes);
 
 
-%% Optimizar modelo - Reglas
-
-% Se calcula el error de test para todas las configuraciones de neuronas en
-% capa oculta
-% Aqui se calcula el error solo con 15, que fue el optimo precalculado
-% Se debe encontrar el optimo mediante iteraciones
-
-net_ent = fitnet(15); % 15 neuronas en capa oculta
-net_ent.trainFcn = 'trainscg'; % Funcion de entrenamiento
-net_ent.trainParam.showWindow=1; % Evita que se abra la ventana de entrenamiento
-net_ent = train(net_ent,X_ent',Y_ent', 'useParallel','yes');
-
-y_p_test = net_ent(X_test')'; % Se genera una prediccion en conjunto de test
-errtest= (sqrt(sum((y_p_test-Y_test).^2)))/length(Y_test); % Se guarda el error de test
-
-optim_hlayer = 15;
 %% Optimizacion numero de neuronas
 Nnet = 20
 errores = zeros(Nnet,3)
@@ -83,33 +67,10 @@ legend('Error Test', 'Error Entrenamiento')
 xlabel('Número de Neuronas')
 ylabel('Error')
 hold off
-%% Optimizaicon modelo n regresores
-errores = zeros(36,2)
-for i=1:36
-    disp(i)
-    net_ent = fitnet(30); % 15 neuronas en capa oculta
-    net_ent.trainFcn = 'trainscg'; % Funcion de entrenamiento
-    net_ent.trainParam.showWindow=1; % Evita que se abra la ventana de entrenamiento
-    net_ent = train(net_ent,X_ent',Y_ent', 'useParallel','yes');
-    y_p_test = net_ent(X_test')';
-    errtest= (sqrt(sum((y_p_test-Y_test).^2)))/length(Y_test); % Se guarda el error de test
-    errores(i,1) = errtest;
-    errores(i,2) = 72-i;
-    [p, indices] = sensibilidad_nn(X_ent, net_ent);
-    X_ent = X_ent(:, setdiff(1:end, p));
-    X_test = X_test(:, setdiff(1:end, p));
-    
 
-end    
-
-plot(errores(:,2),errores(:,1))
-%% Gráfica n regresores
-plot(errores(:,2),errores(:,1))
-title('Error asociado al número de regresores')
-xlabel('Número de Regresores')
-ylabel('Error')
 %% entrenamiento red para optimizar
-net_ent = fitnet(4);
+Nopt = 4
+net_ent = fitnet(Nopt);
 net_ent.trainFcn = 'trainscg';  
 net_ent.trainParam.showWindow=0;
 net_ent = train(net_ent,X_ent',Y_ent', 'useParallel','yes');
@@ -161,13 +122,13 @@ legend('Valor real', 'Valor esperado')
 
 %% Predicciones
 net_optim_structure = my_ann_exporter(net_optim);
-y_hat = my_ann_evaluation(net_optim_structure, x_optim_val');
+y_hat_val = my_ann_evaluation(net_optim_structure, x_optim_val');
 %y_hat = net_optim(x_optim_val')';
 
 figure()
 plot(Y_val, '.b')
 hold on
-plot(y_hat, 'r')
+plot(y_hat_val, 'r')
 
 legend('Valor real', 'Valor esperado')
 
