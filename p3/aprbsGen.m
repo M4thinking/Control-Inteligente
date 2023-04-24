@@ -1,6 +1,5 @@
-function aprbs = aprbsGen(Tfinal)
+function aprbs = aprbsGen(Tfinal,Ts)
     % generacion se�al aprbs
-    Ts = 0.1 ; % tiempo de muestreo
     tau = 6;  % especificamos tiempo de establecimiento
     Ntau = tau/Ts; % cuantas muestras dan el t de establecimiento
     % el ancho de cada pulso se mover� entre tau y 1.5 tau
