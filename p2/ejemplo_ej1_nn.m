@@ -186,5 +186,8 @@ disp([error_test_nn, fit_test_nn, mae_test_nn])
 
 n_iter = 16;
 
+predict = x_optim_ent
+net_optim_structure = my_ann_exporter(net_optim);
+y_hat_ent = my_ann_evaluation(net_optim_structure, x_optim_ent');
 
 
