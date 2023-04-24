@@ -43,7 +43,7 @@ xlabel('Número de Reglas')
 ylabel('Error Cuadrático Medio')
 %% Optimizar modelo - Regresores
 [p, indices] = sensibilidad(Y_ent, X_ent,rules); % rules = numero de clusters
-n_regresores = 30; % Cambiar valor para mayor o menor número de regresores
+n_regresores = 12; % Cambiar valor para mayor o menor número de regresores
 best_indices = [];
 for i=1:n_regresores % Descartamos peor regresor
     [~, idx] = max(indices);
@@ -56,7 +56,7 @@ x_optim_test = X_test(:, sort(best_indices, 'ascend'));
 x_optim_val = X_val(:, sort(best_indices, 'ascend'));
 
 %% Entrenar modelo
-[model, ~] = TakagiSugeno(Y_ent, x_optim_ent, 15, [1 2 2]);
+[model, ~] = TakagiSugeno(Y_ent, x_optim_ent, rules, [1 2 2]);
 
 %% Predicciones
 y_hat_ent = ysim(x_optim_ent, model.a, model.b, model.g);
@@ -260,7 +260,7 @@ Ns = Nregs*2*(Nrules+1); % Cantidad total de numeros difusos por modelo
 z = x_optim_test;
 y = Y_test;
 Nregs = size(z,2);
-Nrules = 13;
+Nrules = rules;
 nu1 = 10000; % Ponderador del PINAW
 nu2 = 3.5; % Ponderador del PICP
 nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
@@ -357,7 +357,7 @@ end
 
 %% jugando
 
-Npred=7;
+Npred=10;
 
 z_pred = x_optim_test;
 
