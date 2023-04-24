@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-%clear
-clc
-addpath("Toolbox TS NN/Toolbox difuso")
-=======
 clear; clc; addpath("Toolbox TS NN/Toolbox difuso")
->>>>>>> acf1ccc61b895b221de4714009606177de9a8a04
 %% a) Generación APRBS
 aprbs = aprbsGen();
 %% Correr simulink
@@ -62,7 +56,6 @@ ylabel('Salida')
 hold off
 %% c) Métricas de desempeño
 % RMSE
-<<<<<<< HEAD
 error_test_ts = mean((Y_test - y_hat_test).^2);
 % FIT
 fit_test_ts = 1 - (error_test_ts/var(Y_test));
@@ -107,7 +100,6 @@ disp([error_test_ts, fit_test_ts, mae_test_ts])
 
 
 
-=======
 error_test = mean((Y_test - y_hat_test).^2);
 % FIT
 fit_test = 1 - (error_test/var(Y_test));
@@ -182,7 +174,7 @@ for idx=1:NNpreds
     hold on;
     % Misma escala para todos los gráficos
     ylim([min(y), 1.5*max(y)]);
-    xlim([0,300]); % Para visualizar mejor
+    xlim([0,500]); % Para visualizar mejor
     hold on;
     % Configuración de la gráfica
     xlabel('Tiempo'); 
@@ -198,9 +190,8 @@ z = x_optim_test;
 y = Y_test;
 Nregs = size(z,2);
 Nrules = size(model.a,1);
-nu1 = 10000; % Ponderador del PINAW
-nu2 = 3; % Ponderador del PICP
-nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+nu1 = 1; % Ponderador del PINAW
+nu2 = 100; % Ponderador del PICP
 Ns = Nregs*2*(Nrules+1);
 Npreds = [1,8,16];
 NNpreds = length(Npreds);
@@ -211,15 +202,14 @@ for idx=1:NNpreds % Para cada predicción
     % Problema de optimización
     for porcentaje=flip(1:9) % Optimizamos para cada porcentaje
         % Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
-        J=@(s)fobj_fuzzy_nums(z_pred,model.a,model.b,model.g,s,y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
+        J=@(s)fobj_fuzzy_nums(z_pred,model.a,model.b,model.g,s,y(Npred:end),nu1,nu2,1-porcentaje/10.0);
         % Particle Swarm Optimization y restricciones
         options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
-        [sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), 100*ones(Ns,1), options);
+        [sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
         ss(:,idx, porcentaje) = sopt;
     end
 end 
 
-%<<<<<<< HEAD
 %% Solución 
 z = x_optim_test;
 y = Y_test;
@@ -241,18 +231,18 @@ plot(y, 'b.', 'LineWidth', 1);
 title('Modelo con intervalo de incertidumbre - Método de Números Difusos - 1 paso')
 xlabel('Tiempo')
 ylabel('salida')
-%=======
+
 %% Guardar en archivo .mat
 save('ss.mat', 'ss');
 %% Resultado final en validación
-load('ss_opt.mat', 'ss'); % Cargar optimo (evitar espera)
+load('sopt.mat', 'ss'); % Cargar optimo (evitar espera)
 z = x_optim_val;
 y = Y_val;
 Nregs = size(z,2);
 Nrules = 2;
-nu1 = 10000; % Ponderador del PINAW
-nu2 = 3.5; % Ponderador del PICP
-nu3 = 10; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+nu1 = 1; % Ponderador del PINAW
+nu2 = 100; % Ponderador del PICP
+nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = Nregs*2*(Nrules+1);
 Npreds = [1,8,16];
 NNpreds = length(Npreds);
@@ -263,9 +253,11 @@ for idx=1:NNpreds % Para cada predicción
     % Problema de optimización
     subplot(3,1,idx);
     for porcentaje=flip(1:9) % Optimizamos para cada porcentaje (al reves para el fill)
-        [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z_pred,model.a,model.b,model.g,ss(:,idx,porcentaje),y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
-        % disp del % asocidado, el PICP y PINAW
-        disp([porcentaje, PICP, PINAW]);
+        [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums(z_pred,model.a,model.b,model.g,ss(:,idx,porcentaje),y(Npred:end),nu1,nu2,1-porcentaje/10.0);
+        % Consideramos el PICP y PINAW reales para comparar intervalos
+        if porcentaje == 9
+            disp([Npred, PICP, PINAW]);
+        end
         t = (1:length(y_hat)) + Npred;
         t2 = [t, fliplr(t)];
         inBetween = [y_sup; flipud(y_inf)];
@@ -284,7 +276,7 @@ for idx=1:NNpreds % Para cada predicción
     
     % Misma escala para todos los gráficos
     ylim([min(y), 1.5*max(y)]);
-    xlim([0,300]); % Para visualizar mejor
+    xlim([0,500]); % Para visualizar mejor
     hold on;
     % Configuración de la gráfica
     xlabel('Tiempo'); 
@@ -297,4 +289,3 @@ end
 
 %% Comparación de intervalos de incertidumbre (métricas para cada predicción)
 
-%>>>>>>> 27c5212fcdd72787f74f1566c4ff261d18997b91
