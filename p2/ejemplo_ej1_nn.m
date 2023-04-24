@@ -144,11 +144,33 @@ disp(['   MSE test ', ' Fit test  ', 'MAE test'])
 disp([error_test_nn, fit_test_nn, mae_test_nn])
 
 %% Predicciones a 8 y 16 pasos
+clc
+% predict = x_optim_ent;
+% net_optim_structure = my_ann_exporter(net_optim);
+% y_hat_ent = my_ann_evaluation(net_optim_structure, x_optim_ent');
 
-n_iter = 16;
-
-predict = x_optim_ent
-net_optim_structure = my_ann_exporter(net_optim);
-y_hat_ent = my_ann_evaluation(net_optim_structure, x_optim_ent');
-
+Npreds = [1, 8, 16];
+NNpreds = length(Npreds);
+z = x_optim_ent;
+%y_hat_ent = my_ann_evaluation(net_optim_structure, predict');
+size(predict)
+figure()
+for i=1:NNpreds
+    Npred = Npreds(i);
+    for j=1:Npred
+        y_hat_ent = my_ann_evaluation(net_optim_structure, z');
+        % z = [yk-1, yk-2, uk-1, uk-2]
+        z = [y_hat_ent(1:end-1)', z(1:end-1, 1), z(2:end,3), z(2:end,4)];
+    end
+    subplot(NNpreds,1,i)
+    plot(Npred+1:length(y_hat_ent)+Npred, y_hat_ent, 'r')
+    hold on
+    plot(Y_ent, 'b')
+    hold on
+    title(['Predicción en entrenamiento - Modelo Neuronal - ', num2str(Npred), ' pasos'])
+    xlabel('Tiempo')
+    ylabel('Salida')
+    legend('Valor esperado', 'Valor real')
+end
+hold off
 
