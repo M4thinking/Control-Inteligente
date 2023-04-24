@@ -42,7 +42,7 @@ title('Error en Función del Número de Reglas');
 xlabel('Número de Reglas')
 ylabel('Error Cuadrático Medio')
 %% Optimizar modelo - Regresores
-[p, indices] = sensibilidad(Y_ent, X_ent,13); % rules = numero de clusters
+[p, indices] = sensibilidad(Y_ent, X_ent,rules); % rules = numero de clusters
 n_regresores = 30; % Cambiar valor para mayor o menor número de regresores
 best_indices = [];
 for i=1:n_regresores % Descartamos peor regresor
