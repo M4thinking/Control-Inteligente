@@ -153,7 +153,7 @@ Npreds = [1, 8, 16];
 NNpreds = length(Npreds);
 z = x_optim_ent;
 %y_hat_ent = my_ann_evaluation(net_optim_structure, predict');
-size(predict)
+%size(predict)
 figure()
 for i=1:NNpreds
     Npred = Npreds(i);
@@ -173,4 +173,64 @@ for i=1:NNpreds
     legend('Valor esperado', 'Valor real')
 end
 hold off
+
+%% Predicciones a 8 y 16 pasos sobre conjunto de test
+clc
+% predict = x_optim_ent;
+% net_optim_structure = my_ann_exporter(net_optim);
+% y_hat_ent = my_ann_evaluation(net_optim_structure, x_optim_ent');
+y_hats_nn = zeros(length(Y_test),3);
+Npreds = [1, 8, 16];
+NNpreds = length(Npreds);
+z = x_optim_test;
+%y_hat_ent = my_ann_evaluation(net_optim_structure, predict');
+%size(predict)
+figure()
+for i=1:NNpreds
+    Npred = Npreds(i);
+    for j=1:Npred
+        y_hat_test = my_ann_evaluation(net_optim_structure, z');
+        % z = [yk-1, yk-2, uk-1, uk-2]
+        z = [y_hat_test(1:end-1)', z(1:end-1, 1), z(2:end,3), z(2:end,4)];
+    end
+    %disp(length(y_hat_test))
+    if i == 1
+        y_hats_nn(:,i) = y_hat_test';
+    elseif i == 2
+        y_hats_nn(:,i) = vertcat(zeros(Npred,1),y_hat_test');  
+    else
+        y_hats_nn(:,i) = vertcat(zeros(Npred,1),y_hat_test',zeros(8,1));
+    end    
+    subplot(NNpreds,1,i)
+    plot(Npred+1:length(y_hat_test)+Npred, y_hat_test, 'r')
+    hold on
+    plot(Y_test, '.b')
+    hold on
+    title(['Predicción en entrenamiento - Modelo Neuronal - ', num2str(Npred), ' pasos'])
+    xlabel('Tiempo')
+    ylabel('Salida')
+    legend('Valor esperado', 'Valor real')
+end
+hold off
+
+%% Métricas para predicciones a 1, 8 y 18 Pasos
+
+% RMSE
+error_test_nn8 = mean((Y_test(9:end) - y_hats_nn(9:end,2)).^2);
+% FIT
+fit_test_nn8 = 1 - (error_test_nn8/var(Y_test(9:end)));
+% MAE 
+mae_test_nn8 = mean(abs(Y_test(9:end) - y_hats_nn(9:end,2)));
+
+% RMSE
+error_test_nn16 = mean((Y_test(17:end-8) - y_hats_nn(17:end-8,3)).^2);
+% FIT
+fit_test_nn16 = 1 - (error_test_nn16/var(Y_test(16:end-8)));
+% MAE 
+mae_test_nn16 = mean(abs(Y_test(17:end-8) - y_hats_nn(17:end-8,3)));
+
+disp(['   MSE test ', ' Fit test  ', 'MAE test'])
+disp([error_test_nn8, fit_test_nn8, mae_test_nn8])
+disp([error_test_nn16, fit_test_nn16, mae_test_nn16])
+
 
