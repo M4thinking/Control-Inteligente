@@ -55,13 +55,13 @@ ylabel('Salida')
 hold off
 %% c) Métricas de desempeño
 % RMSE
-error_test = mean((Y_test - y_hat_test).^2);
+error_val = mean((Y_val - y_hat_val).^2);
 % FIT
-fit_test = 1 - (error_test/var(Y_test));
+fit_val = 1 - (error_val/var(Y_val));
 % MAE 
-mae_ent = mean(abs(Y_test - y_hat_test));
-disp(['   MSE test ', ' Fit test  ', 'MAE test'])
-disp([error_test, fit_test, mae_ent])
+mae_val = mean(abs(Y_val - y_hat_val));
+disp(['   MSE val ', ' Fit val  ', 'MAE val'])
+disp([error_val, fit_val, mae_val])
 %% d) Parámetros de Intervalos Difusos - M. Covarianza
 z= x_optim_ent;
 y = Y_ent;
@@ -102,6 +102,7 @@ z = x_optim_val;
 y = Y_val;
 Npreds = [1 8 16];
 NNpreds = length(Npreds);
+y_hats_ts = zeros(length(Y_val),NNpreds);
 figure()
 for idx=1:NNpreds
     Npred = Npreds(idx);
@@ -119,6 +120,12 @@ for idx=1:NNpreds
         fill(t2, inBetween, [0.5 (1-porcentaje/10.0) 1], 'FaceAlpha', (10-porcentaje)/12.0);
         set(findobj(gca,'Type','Patch'),'EdgeColor', 'none'); % Quitar borde del fill
         hold on;
+    end
+    %guardar predicciones para mediciones
+    if i == 1
+        y_hats_ts(:,idx) = y_hat;
+    else
+        y_hats_ts(:,idx) = vertcat(zeros(Npred-1,1),y_hat);
     end
     % Graficar puntos reales
     plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
@@ -138,6 +145,25 @@ for idx=1:NNpreds
         'y_{val}', 'y_{hat}', 'Orientation','horizontal');
     hold off;
 end
+%% Métricas para predicciones a 8 y 18 Pasos
+
+% RMSE
+error_val_ts8 = mean((Y_val(9:end) - y_hats_ts(9:end,2)).^2);
+% FIT
+fit_val_ts8 = 1 - (error_val_ts8/var(Y_val(9:end)));
+% MAE 
+mae_val_ts8 = mean(abs(Y_val(9:end) - y_hats_ts(9:end,2)));
+
+% RMSE
+error_val_ts16 = mean((Y_val(17:end) - y_hats_ts(17:end,3)).^2);
+% FIT
+fit_val_ts16 = 1 - (error_val_ts16/var(Y_val(17:end)));
+% MAE 
+mae_val_ts16 = mean(abs(Y_val(17:end) - y_hats_ts(17:end,3)));
+
+disp(['   MSE val ', ' Fit val  ', 'MAE val'])
+disp([error_val_ts8, fit_val_ts8, mae_val_ts8])
+disp([error_val_ts16, fit_val_ts16, mae_val_ts16])
 %% Intervalo de incertidumbre para 1,8 y 16 pasos (Números difusos) (DEMORA MUCHO ~20min)
 % pause
 z = x_optim_test;

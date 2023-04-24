@@ -134,14 +134,14 @@ legend('Valor real', 'Valor esperado')
 
 %% Métricas de desempeño
 % RMSE
-error_test_nn = mean((Y_test - y_hat_test').^2);
+error_val_nn = mean((Y_val - y_hat_val').^2);
 % FIT
-fit_test_nn = 1 - (error_test_nn/var(Y_test));
+fit_val_nn = 1 - (error_val_nn/var(Y_val));
 % MAE 
-mae_test_nn = mean(abs(Y_test - y_hat_test'));
+mae_val_nn = mean(abs(Y_val - y_hat_val'));
 
-disp(['   MSE test ', ' Fit test  ', 'MAE test'])
-disp([error_test_nn, fit_test_nn, mae_test_nn])
+disp(['   MSE val ', ' Fit val  ', 'MAE val'])
+disp([error_val_nn, fit_val_nn, mae_val_nn])
 
 %% Predicciones a 8 y 16 pasos
 clc
@@ -213,24 +213,24 @@ for i=1:NNpreds
 end
 hold off
 
-%% Métricas para predicciones a 1, 8 y 18 Pasos
+%% Métricas para predicciones a 8 y 18 Pasos
 
 % RMSE
-error_test_nn8 = mean((Y_test(9:end) - y_hats_nn(9:end,2)).^2);
+error_val_nn8 = mean((Y_val(9:end) - y_hats_nn(9:end,2)).^2);
 % FIT
-fit_test_nn8 = 1 - (error_test_nn8/var(Y_test(9:end)));
+fit_val_nn8 = 1 - (error_val_nn8/var(Y_val(9:end)));
 % MAE 
-mae_test_nn8 = mean(abs(Y_test(9:end) - y_hats_nn(9:end,2)));
+mae_val_nn8 = mean(abs(Y_val(9:end) - y_hats_nn(9:end,2)));
 
 % RMSE
-error_test_nn16 = mean((Y_test(17:end-8) - y_hats_nn(17:end-8,3)).^2);
+error_val_nn16 = mean((Y_val(17:end-8) - y_hats_nn(17:end-8,3)).^2);
 % FIT
-fit_test_nn16 = 1 - (error_test_nn16/var(Y_test(16:end-8)));
+fit_val_nn16 = 1 - (error_val_nn16/var(Y_val(16:end-8)));
 % MAE 
-mae_test_nn16 = mean(abs(Y_test(17:end-8) - y_hats_nn(17:end-8,3)));
+mae_val_nn16 = mean(abs(Y_val(17:end-8) - y_hats_nn(17:end-8,3)));
 
-disp(['   MSE test ', ' Fit test  ', 'MAE test'])
-disp([error_test_nn8, fit_test_nn8, mae_test_nn8])
-disp([error_test_nn16, fit_test_nn16, mae_test_nn16])
+disp(['   MSE val ', ' Fit val  ', 'MAE val'])
+disp([error_val_nn8, fit_val_nn8, mae_val_nn8])
+disp([error_val_nn16, fit_val_nn16, mae_val_nn16])
 
 
