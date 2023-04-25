@@ -303,7 +303,7 @@ for idx=1:NNpreds % Para cada predicción
 end 
 
 %%
-save('sopt_nn.mat', 'ss')
+save('sopt_nn_p3.mat', 'ss')
 %% Resultado final en validación
 load('sopt_nn.mat', 'ss'); % Cargar optimo (evitar espera)
 z = x_optim_val;
