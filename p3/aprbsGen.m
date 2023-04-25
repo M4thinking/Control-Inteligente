@@ -3,8 +3,8 @@ function aprbs = aprbsGen(Tfinal,Ts)
     tau = 6;  % especificamos tiempo de establecimiento
     Ntau = tau/Ts; % cuantas muestras dan el t de establecimiento
     % el ancho de cada pulso se mover� entre tau y 1.5 tau
-    Amax = 20;  % cotas de la se�al
-    Amin = -20;  
+    Amax = 25;  % cotas de la se�al
+    Amin = -25;  
 
     Time = Ts:Ts:Tfinal;
     Nmuestras = length(Time);
