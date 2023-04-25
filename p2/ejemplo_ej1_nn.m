@@ -241,7 +241,7 @@ y = Y_test;
 Nregs = size(z,2);
 Nneuronas = 4;
 nu1 = 1; % Ponderador del PINAW
-nu2 = 100; % Ponderador del PICP
+nu2 = 1000; % Ponderador del PICP
 nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = 2*(Nneuronas+1);
 Npreds = [1,8,16];
@@ -268,7 +268,7 @@ for idx=1:NNpreds % Para cada predicción
 end 
 
 %%
-save('sopt_nn_p2.mat', 'ss')
+save('sopt_nn.mat', 'ss')
 %% Resultado final en validación
 load('sopt_nn_p2.mat', 'ss'); % Cargar optimo (evitar espera)
 z = x_optim_val;
