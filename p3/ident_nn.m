@@ -159,7 +159,6 @@ for i=1:NNpreds
     Npred = Npreds(i);
     z = x_optim_ent;
     for j=1:Npred
-        disp(size(z))
         y_hat = my_ann_evaluation(net_optim_structure, z');
         % z = [yk-1, yk-2, uk-1, uk-2]
         z = [y_hat(1:end-1)', z(1:end-1, 2:Nregs), z(2:end,Nregs+1:end)];
@@ -247,7 +246,7 @@ for idx=1:NNpreds % Para cada predicción
     % Problema de optimización
     for porcentaje=flip(1:9) % Optimizamos para cada porcentaje
         % Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
-        J=@(s)f_obj_fuzzy_nums_nn(z_pred,net_optim_structure,s,y(Npred:end),nu1,nu2,1-porcentaje/10.0);
+        J=@(s)f_obj_fuzzy_nums_nn(z_pred,net_optim_structure,s,y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
         % Particle Swarm Optimization y restricciones
         options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
         [sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
