@@ -103,6 +103,8 @@ y = Y_val;
 Npreds = [1 8 16];
 NNpreds = length(Npreds);
 y_hats_ts = zeros(length(Y_val),NNpreds);
+y_sups_ts_cov = zeros(length(Y_val),NNpreds);
+y_infs_ts_cov = zeros(length(Y_val),NNpreds);
 figure()
 for idx=1:NNpreds
     Npred = Npreds(idx);
@@ -120,12 +122,17 @@ for idx=1:NNpreds
         fill(t2, inBetween, [0.5 (1-porcentaje/10.0) 1], 'FaceAlpha', (10-porcentaje)/12.0);
         set(findobj(gca,'Type','Patch'),'EdgeColor', 'none'); % Quitar borde del fill
         hold on;
-    end
-    %guardar predicciones para mediciones
-    if i == 1
-        y_hats_ts(:,idx) = y_hat;
-    else
-        y_hats_ts(:,idx) = vertcat(zeros(Npred-1,1),y_hat);
+        %guardar predicciones para mediciones
+        if (idx == 1) && (porcentaje ==9)
+            y_hats_ts(:,idx) = y_hat;
+            y_sups_ts_cov(:,idx) = y_sup;
+            y_infs_ts_cov(:,idx) = y_inf;
+        elseif (idx ~= 1) && (porcentaje ==9)
+            y_hats_ts(:,idx) = vertcat(zeros(Npred-1,1),y_hat);
+            y_sups_ts_cov(:,idx) = vertcat(zeros(Npred-1,1),y_sup);
+            y_infs_ts_cov(:,idx) = vertcat(zeros(Npred-1,1),y_inf);
+
+        end
     end
     % Graficar puntos reales
     plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
@@ -164,6 +171,18 @@ mae_val_ts16 = mean(abs(Y_val(17:end) - y_hats_ts(17:end,3)));
 disp(['   MSE val ', ' Fit val  ', 'MAE val'])
 disp([error_val_ts8, fit_val_ts8, mae_val_ts8])
 disp([error_val_ts16, fit_val_ts16, mae_val_ts16])
+%% Calculo PINAW y PICP Metodo Covarianza
+PICP1C = calc_picp(Y_val, y_infs_ts_cov(:,1),y_sups_ts_cov(:,1));
+PICP8C = calc_picp(Y_val(9:end), y_infs_ts_cov(9:end,2),y_sups_ts_cov(9:end,2));
+PICP16C = calc_picp(Y_val(17:end), y_infs_ts_cov(17:end,3),y_sups_ts_cov(17:end,3));
+PINAW1C = calc_pinaw(Y_val, y_infs_ts_cov(:,1),y_sups_ts_cov(:,1));
+PINAW8C = calc_pinaw(Y_val(9:end), y_infs_ts_cov(9:end,2),y_sups_ts_cov(9:end,2));
+PINAW16C = calc_pinaw(Y_val(17:end), y_infs_ts_cov(17:end,3),y_sups_ts_cov(17:end,3));
+
+disp(['   N-PASOS ', ' PICP  ', 'PINAW'])
+disp([1, PICP1C,PINAW1C])
+disp([8, PICP8C,PINAW8C])
+disp([16, PICP16C,PINAW16C])
 %% Intervalo de incertidumbre para 1,8 y 16 pasos (Números difusos) (DEMORA MUCHO ~20min)
 % pause
 z = x_optim_test;
@@ -204,6 +223,9 @@ nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = Nregs*2*(Nrules+1);
 Npreds = [1,8,16];
 NNpreds = length(Npreds);
+y_hats_ts = zeros(length(Y_val),NNpreds);
+y_sups_ts_fn = zeros(length(Y_val),NNpreds);
+y_infs_ts_fn = zeros(length(Y_val),NNpreds);
 figure()
 for idx=1:NNpreds % Para cada predicción
     Npred = Npreds(idx);
@@ -223,8 +245,17 @@ for idx=1:NNpreds % Para cada predicción
         hold on;
         set(findobj(gca,'Type','Patch'),'EdgeColor', 'none'); % Quitar borde del fill
         hold on;
-    end
+        if (idx == 1) && (porcentaje ==9)
+            y_hats_ts(:,idx) = y_hat;
+            y_sups_ts_fn(:,idx) = y_sup;
+            y_infs_ts_fn(:,idx) = y_inf;
+        elseif (idx ~= 1) && (porcentaje ==9)
+            y_hats_ts(:,idx) = vertcat(zeros(Npred-1,1),y_hat);
+            y_sups_ts_fn(:,idx) = vertcat(zeros(Npred-1,1),y_sup);
+            y_infs_ts_fn(:,idx) = vertcat(zeros(Npred-1,1),y_inf);
 
+        end
+    end   
     % Graficar puntos reales
     plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
     hold on;
@@ -245,5 +276,16 @@ for idx=1:NNpreds % Para cada predicción
     hold off;
 end
 
-%% Comparación de intervalos de incertidumbre (métricas para cada predicción)
+%% Calculo PINAW y PICP Metodo Numeros Difusos
+PICP1FN = calc_picp(Y_val, y_infs_ts_fn(:,1),y_sups_ts_fn(:,1));
+PICP8FN = calc_picp(Y_val(9:end), y_infs_ts_fn(9:end,2),y_sups_ts_fn(9:end,2));
+PICP16FN = calc_picp(Y_val(17:end), y_infs_ts_fn(17:end,3),y_sups_ts_fn(17:end,3));
+PINAW1FN = calc_pinaw(Y_val, y_infs_ts_fn(:,1),y_sups_ts_fn(:,1));
+PINAW8FN = calc_pinaw(Y_val(9:end), y_infs_ts_fn(9:end,2),y_sups_ts_fn(9:end,2));
+PINAW16FN = calc_pinaw(Y_val(17:end), y_infs_ts_fn(17:end,3),y_sups_ts_fn(17:end,3));
+
+disp(['   N-PASOS ', ' PICP  ', 'PINAW'])
+disp([1, PICP1FN,PINAW1FN])
+disp([8, PICP8FN,PINAW8FN])
+disp([16, PICP16FN,PINAW16FN])
 
