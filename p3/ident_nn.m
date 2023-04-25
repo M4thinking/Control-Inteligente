@@ -269,7 +269,7 @@ hold off
 % plot(t, y_hat, 'Color',[0.8 0 0] , 'LineWidth', 0.5);
 % hold on;
 
-%% Interalos - Numeros difusos - Predicciones a 1, 8 y 18 Pasos
+%% Interalos - Numeros difusos - Predicciones a 1, 8 y 18 Pasos (DEMORA)
 clc
 z = x_optim_test;
 y = Y_test;
