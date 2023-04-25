@@ -279,7 +279,7 @@ nu1 = 1; % Ponderador del PINAW
 nu2 = 100; % Ponderador del PICP
 nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = 2*(Nneuronas+1);
-Npreds = [1,8,16];
+Npreds = [1,30,60];
 NNpreds = length(Npreds);
 ss = zeros(Ns, NNpreds, 9);
 for idx=1:NNpreds % Para cada predicción
@@ -303,9 +303,9 @@ for idx=1:NNpreds % Para cada predicción
 end 
 
 %%
-save('sopt_nn_p3.mat', 'ss')
+save('sopt_nn_muchos_pasos.mat', 'ss')
 %% Resultado final en validación
-load('sopt_nn.mat', 'ss'); % Cargar optimo (evitar espera)
+load('sopt_nn_muchos_pasos.mat', 'ss'); % Cargar optimo (evitar espera)
 z = x_optim_val;
 y = Y_val;
 Nregs = size(z,2);
@@ -314,7 +314,7 @@ nu1 = 1; % Ponderador del PINAW
 nu2 = 100; % Ponderador del PICP
 nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
 Ns = 2*(Nregs+1)*Nneuronas;
-Npreds = [1,8,16];
+Npreds = [1,30,60];
 NNpreds = length(Npreds);
 figure()
 for idx=1:NNpreds % Para cada predicción
