@@ -234,4 +234,96 @@ disp(['   MSE val ', ' Fit val  ', 'MAE val'])
 disp([error_val_nn8, fit_val_nn8, mae_val_nn8])
 disp([error_val_nn16, fit_val_nn16, mae_val_nn16])
 
+%% Interalos - Numeros difusos - Predicciones a 1, 8 y 18 Pasos
+clc
+z = x_optim_test;
+y = Y_test;
+Nregs = size(z,2);
+Nneuronas = 4;
+nu1 = 1; % Ponderador del PINAW
+nu2 = 100; % Ponderador del PICP
+nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+Ns = 2*(Nneuronas+1);
+Npreds = [1,8,16];
+NNpreds = length(Npreds);
+ss = zeros(Ns, NNpreds, 9);
+for idx=1:NNpreds % Para cada predicción
+    Npred = Npreds(idx);
+    z_pred = z;
+    for j=1:Npred
+        y_hat = my_ann_evaluation(net_optim_structure, z_pred');
+        if j < Npred
+            z_pred = [y_hat(1:end-1)', z_pred(1:end-1, 2:Nregs), z_pred(2:end,Nregs+1:end)];
+        end
+    end
+    % Problema de optimización
+    for porcentaje=flip(1:9) % Optimizamos para cada porcentaje
+        % Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
+        J=@(s)f_obj_fuzzy_nums_nn(z_pred,net_optim_structure,s,y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
+        % Particle Swarm Optimization y restricciones
+        options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
+        [sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
+        ss(:,idx, porcentaje) = sopt;
+    end
+end 
+
+%%
+save('sopt_nn_p2.mat', 'ss')
+%% Resultado final en validación
+load('sopt_nn_p2.mat', 'ss'); % Cargar optimo (evitar espera)
+z = x_optim_val;
+y = Y_val;
+Nregs = size(z,2);
+Nneuronas = 4;
+nu1 = 1; % Ponderador del PINAW
+nu2 = 100; % Ponderador del PICP
+nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+Ns = 2*(Nregs+1)*Nneuronas;
+Npreds = [1,8,16];
+NNpreds = length(Npreds);
+figure()
+for idx=1:NNpreds % Para cada predicción
+    Npred = Npreds(idx);
+    z_pred = z;
+    for j=1:Npred
+        y_hat = my_ann_evaluation(net_optim_structure, z_pred');
+        if j < Npred
+            z_pred = [y_hat(1:end-1)', z_pred(1:end-1, 2:Nregs), z_pred(2:end,Nregs+1:end)];
+        end
+    end
+    % Problema de optimización
+    subplot(3,1,idx);
+    for porcentaje=flip(1:9) % Optimizamos para cada porcentaje (al reves para el fill)
+        [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums_nn(z_pred,net_optim_structure,ss(:,idx,porcentaje),y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
+        % Consideramos el PICP y PINAW reales para comparar intervalos
+        if porcentaje == 9
+            disp([Npred, PICP, PINAW]);
+        end
+        t = (1:length(y_hat));
+        t2 = [t, fliplr(t)];
+        inBetween = [y_sup; flipud(y_inf)];
+        fill(t2, inBetween, [0.5 (1-porcentaje/10.0) 1], 'FaceAlpha', (10-porcentaje)/12.0);
+        hold on;
+        set(findobj(gca,'Type','Patch'),'EdgeColor', 'none'); % Quitar borde del fill
+        hold on;
+    end
+
+    % Graficar puntos reales
+    plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
+    hold on;
+    % Graficar curva de estimación y_hat(k+i-1) (rojo oscuro)
+    plot(t, y_hat, 'Color',[0.8 0 0] , 'LineWidth', 0.5);
+    hold on;
+    
+    % Misma escala para todos los gráficos
+    xlim([0,1000]); % Para visualizar mejor
+    hold on;
+    % Configuración de la gráfica
+    xlabel('Tiempo'); 
+    ylabel('Salida');
+    title(sprintf('Modelo con intervalo de incertidumbre - Números difusos - %d pasos', Npred));
+    legend('90%','80%','70%', '60%','50%', '40%','30%','20%','10%',...
+        'y_{val}', 'y_{hat}', 'Orientation','horizontal');
+    hold off;
+end
 

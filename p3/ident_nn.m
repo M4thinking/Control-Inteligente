@@ -225,49 +225,49 @@ hold off
 %%
 
 %% 
-clc
-z = x_optim_test;
-y = Y_test;
-porcentaje = 9;
-nu1 = 1; % Ponderador del PINAW
-nu2 = 100; % Ponderador del PICP
-nu3 = 0;
-Nneuronas = 4;
-Ns = 2*(Nneuronas+1);
-size(y)
-s = zeros(Ns,1);
-f_obj_fuzzy_nums_nn(z,net_optim_structure,s,y(1:end),nu1,nu2,nu3,1-porcentaje/10.0);
-%%
-% Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
-J=@(s)f_obj_fuzzy_nums_nn(z_pred,net_optim_structure,s,y,nu1,nu2,nu3,0.1);
-% Particle Swarm Optimization y restricciones
-options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
-[sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
-ss1 = sopt;
-%%
-[~, ~, ~, PICP, PINAW, ~] = eval_fuzzy_nums_nn(z,net_optim_structure,ss1,y,nu1,nu2,nu3,1-porcentaje/10.0);
-disp([PICP, PINAW]);
-%%
-z = x_optim_test;
-y = Y_test;
-[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums_nn(z,net_optim_structure,ss1,y,nu1,nu2,nu3,1-porcentaje/10.0);
-% Consideramos el PICP y PINAW reales para comparar intervalos
-if porcentaje == 9
-    disp([Npred, PICP, PINAW]);
-end
-t = (1:length(y_hat)) + 1;
-t2 = [t, fliplr(t)];
-inBetween = [y_sup; flipud(y_inf)];
-fill(t2, inBetween, [0.5 (1-porcentaje/10.0) 1], 'FaceAlpha', (10-porcentaje)/12.0);
-hold on;
-set(findobj(gca,'Type','Patch'),'EdgeColor', 'none'); % Quitar borde del fill
-hold on;
-% Graficar puntos reales
-plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
-hold on;
-% Graficar curva de estimación y_hat(k+i-1) (rojo oscuro)
-plot(t, y_hat, 'Color',[0.8 0 0] , 'LineWidth', 0.5);
-hold on;
+% clc
+% z = x_optim_test;
+% y = Y_test;
+% porcentaje = 9;
+% nu1 = 1; % Ponderador del PINAW
+% nu2 = 100; % Ponderador del PICP
+% nu3 = 0;
+% Nneuronas = 4;
+% Ns = 2*(Nneuronas+1);
+% size(y)
+% s = zeros(Ns,1);
+% f_obj_fuzzy_nums_nn(z,net_optim_structure,s,y(1:end),nu1,nu2,nu3,1-porcentaje/10.0);
+% %%
+% % Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
+% J=@(s)f_obj_fuzzy_nums_nn(z_pred,net_optim_structure,s,y,nu1,nu2,nu3,0.1);
+% % Particle Swarm Optimization y restricciones
+% options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
+% [sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
+% ss1 = sopt;
+% %%
+% [~, ~, ~, PICP, PINAW, ~] = eval_fuzzy_nums_nn(z,net_optim_structure,ss1,y,nu1,nu2,nu3,1-porcentaje/10.0);
+% disp([PICP, PINAW]);
+% %%
+% z = x_optim_test;
+% y = Y_test;
+% [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums_nn(z,net_optim_structure,ss1,y,nu1,nu2,nu3,1-porcentaje/10.0);
+% % Consideramos el PICP y PINAW reales para comparar intervalos
+% if porcentaje == 9
+%     disp([Npred, PICP, PINAW]);
+% end
+% t = (1:length(y_hat)) + 1;
+% t2 = [t, fliplr(t)];
+% inBetween = [y_sup; flipud(y_inf)];
+% fill(t2, inBetween, [0.5 (1-porcentaje/10.0) 1], 'FaceAlpha', (10-porcentaje)/12.0);
+% hold on;
+% set(findobj(gca,'Type','Patch'),'EdgeColor', 'none'); % Quitar borde del fill
+% hold on;
+% % Graficar puntos reales
+% plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
+% hold on;
+% % Graficar curva de estimación y_hat(k+i-1) (rojo oscuro)
+% plot(t, y_hat, 'Color',[0.8 0 0] , 'LineWidth', 0.5);
+% hold on;
 
 %% Interalos - Numeros difusos - Predicciones a 1, 8 y 18 Pasos
 clc
