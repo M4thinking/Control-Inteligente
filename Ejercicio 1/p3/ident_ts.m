@@ -78,6 +78,49 @@ fit_val = 1 - (error_val/var(Y_val));
 mae_val = mean(abs(Y_val - y_hat_val));
 disp(['   MSE val ', ' Fit val  ', 'MAE val'])
 disp([error_val, fit_val, mae_val])
+
+%% Predicciones a 1,30 y 60 pasos sobre conjunto de test
+clc
+% predict = x_optim_ent;
+% net_optim_structure = my_ann_exporter(net_optim);
+% y_hat_ent = my_ann_evaluation(net_optim_structure, x_optim_ent');
+z = x_optim_test;
+y = Y_test;
+Npreds = [1, 30, 60];
+NNpreds = length(Npreds);
+Nregs = size(z,2)/2;
+%y_hat_ent = my_ann_evaluation(net_optim_structure, predict');
+%size(predict)
+figure()
+for i=1:NNpreds
+    z = x_optim_test;
+    Npred = Npreds(i);
+    [y_hat, ~] = ysimn(z, model, Npred);
+    % Métricas relevantes
+    disp(['Predicciones a ', num2str(Npred), 'pasos.'])
+    % RMSE
+    error_test_nn = mean((y(Npred:end) - y_hat).^2);
+    % FIT
+    fit_test_nn = 1 - (error_test_nn/var(y(Npred:end)));
+    % MAE 
+    mae_test_nn = mean(abs(y(Npred:end) - y_hat));
+    disp(['   MSE val ', ' Fit val  ', 'MAE val'])
+    disp([error_test_nn, fit_test_nn, mae_test_nn])
+    subplot(NNpreds,1,i)
+    plot((1:length(y_hat)), y_hat, 'r-')
+    hold on
+    plot(y, '.b')
+    hold on
+    xlim([0,1000]); % Para visualizar mejor
+    hold on;
+    % Misma escala para todos los gráficos
+    xlim([0,1000]); % Para visualizar mejor
+    title(['Predicción en entrenamiento - Modelo Neuronal - ', num2str(Npred), ' pasos'])
+    xlabel('Tiempo')
+    ylabel('Salida')
+    legend('Valor esperado', 'Valor real')
+end
+hold off
 %% d) Parámetros de Intervalos Difusos - M. Covarianza
 z= x_optim_ent;
 y = Y_ent;
