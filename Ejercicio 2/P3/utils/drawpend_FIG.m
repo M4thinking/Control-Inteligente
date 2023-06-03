@@ -29,9 +29,7 @@ hold on
 rectangle('Position',[x-W/2,y-H/2,W,H],'Curvature',.1,'FaceColor',[.5 0.5 1],'LineWidth',1.5)
 rectangle('Position',[w1x,w1y,wr,wr],'Curvature',1,'FaceColor',[0 0 0],'LineWidth',1.5)
 rectangle('Position',[w2x,w2y,wr,wr],'Curvature',1,'FaceColor',[0 0 0],'LineWidth',1.5)
-
 plot([x px],[y py],'k','LineWidth',2)
-
 rectangle('Position',[px-mr/2,py-mr/2,mr,mr],'Curvature',1,'FaceColor',[1 0.1 .1],'LineWidth',1.5)
 
 % set(gca,'YTick',[])
