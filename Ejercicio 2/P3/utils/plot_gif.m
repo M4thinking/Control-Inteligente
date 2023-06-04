@@ -3,6 +3,9 @@ function plot_gif(t,y,m,M,L,title)
     filename = strcat(title, '.gif');  % nombre del archivo gif
     figure();
     for k=1:length(t)
+        resultado = mod(y(k,1),20);
+        y(k, 1) = resultado;
+        xlim([0 20]);
         drawpend(y(k,:),m,M,L);
         pause(dt);
         % Agregar el cuadro actual a la animación gif
