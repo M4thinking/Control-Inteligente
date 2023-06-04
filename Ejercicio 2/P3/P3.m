@@ -33,15 +33,15 @@ ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
 ref2 = pi+pi/2*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
 
 % Graficamos
-figure(1)
-plot(t_ref,ref1,'b',t_ref,ref2,'r')
-legend('Referencia 1','Referencia 2')
-ylim([0,3*pi/2]);
-xlabel('Tiempo [s]')
-ylabel('Angulo [grados]')
-title('Referencias')
-grid on
-hold off;
+% figure(1)
+% plot(t_ref,ref1,'b',t_ref,ref2,'r')
+% legend('Referencia 1','Referencia 2')
+% ylim([0,3*pi/2]);
+% xlabel('Tiempo [s]')
+% ylabel('Angulo [grados]')
+% title('Referencias')
+% grid on
+% hold off;
 
 
 %% Parte c) Controlador predictivo fenomenológico
@@ -62,7 +62,7 @@ for k = 1:Ncontrol
 end
 
 % Graficar
-plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
+% plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
 
 % Generar gif
 m = 1; M = 5; L = 2;
