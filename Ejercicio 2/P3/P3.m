@@ -13,7 +13,7 @@ Tf = 10; % Tiempo final en segundos
 
 % Loop de control
 Ncontrol = Tf/Ts; % Número de pasos de control
-Npred = 6; % Horizonde de prediccion
+Npred = 10; % Horizonde de prediccion
 
 % Vectores para almacenar los resultados
 x_vec = zeros(Ncontrol+1, 4); % Estados
@@ -33,15 +33,16 @@ ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
 ref2 = pi+pi/2*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
 
 % Graficamos
-% figure(1)
-% plot(t_ref,ref1,'b',t_ref,ref2,'r')
-% legend('Referencia 1','Referencia 2')
-% ylim([0,3*pi/2]);
-% xlabel('Tiempo [s]')
-% ylabel('Angulo [grados]')
-% title('Referencias')
-% grid on
-% hold off;
+figure(1)
+plot(t_ref,ref1,'r',t_ref,ref2,'b')
+legend('Referencia 1','Referencia 2')
+xlim([0,Tf])
+ylim([0,3*pi/2]);
+xlabel('Tiempo [s]')
+ylabel('Angulo [grados]')
+title('Referencias')
+grid on
+hold off;
 
 
 %% Parte c) Controlador predictivo fenomenológico
@@ -62,48 +63,43 @@ for k = 1:Ncontrol
 end
 
 % Graficar
-% plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
+plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
 
-% Generar gif
+%% Generar gif
 m = 1; M = 5; L = 2;
 
-t_vec_interp = 0:0.015:10;
+t_vec_interp = 0:0.05:10;
 x_vec_interp = interp1(t_vec, x_vec, t_vec_interp, 'spline');% Interpolación con spline para mas fluidez en el gif
-
 plot_gif(t_vec_interp,x_vec_interp,m,M,L,'Control predictivo')
 
 %% Parte f) Controlador predictivo fenomenológico con incertezas
 theta_ref = ref2; % MODIFICAR REFERENCIA
 u0 = zeros(Npred, 1);  % Solución propuesta inicial
 for k = 1:Ncontrol
-    %Genera ruido gaussiano
-    % Parámetros del ruido
-    media = 0;         % Media del ruido
-    desviacion = 5;  % Desviación estándar del ruido
-
-    % Generar ruido blanco gaussiano
-    ruido = desviacion * randn(size(1));
-
     % Ejecutar control predictivo
     next_ref = theta_ref(k+1:k+Npred)';
     [u_next, u0] = control_predictivo(Npred,model,u0,x0,u_prev,next_ref);
-    % Calcular el estado en el siguiente paso utilizando el modelo
-    x_next = model(u_next, x0);
+    % Ruido gaussiano
+    media = 0;         % Media del ruido
+    desviacion = 1;  % Desviación estándar del ruido
+    % Generar ruido blanco gaussiano
+    ruido = desviacion*(randn(size(1))+media);
+    % Calcular el estado en el siguiente paso utilizando el modelo + ruido
+    x_next = model(u_next + ruido, x0);
     % Actualizar valores para el siguiente paso de control
     x0 = x_next;
-    u_prev = u_next + ruido;
+    u_prev = u_next;
     x_vec(k+1, :) = x_next';
     y_vec(k+1) = x_next(3);
-    u_vec(k) = u_next + ruido;
+    u_vec(k) = u_next; % Guardamos lo que cree que aplicó
 end
 
 % Graficar
 plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
-
-% Generar gif
+%% Generar gif
 m = 1; M = 5; L = 2;
 
-t_vec_interp = 0:0.01:10;
-x_vec_interp = interp1(t_vec, x_vec, t_vec_interp, 'spline');% Interpolación con spline para mas fluidez en el gif
-
-plot_gif(t_vec_interp,x_vec_interp,m,M,L,'Control predictivo')
+t_vec_interp = 0:0.05:10; % Aumentar la cantidad de frames
+% Interpolación con spline para mas fluidez en el gif
+x_vec_interp = interp1(t_vec, x_vec, t_vec_interp, 'spline');
+plot_gif(t_vec_interp,x_vec_interp,m,M,L,'Control predictivo con incerteza')

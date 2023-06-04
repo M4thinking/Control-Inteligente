@@ -1,12 +1,11 @@
 function [] = plots(t,x,y,u,ref,nc)
-% Posición del carro (modulo 20)
-pos = mod(cumtrapz(t, x(:, 2)),20);
+%pos = mod(cumtrapz(t, x(:, 2)),20);
 % Crear gráfico con 3 subplots
 figure;
 % Subplot 1: Estados reales
 subplot(4, 1, 1);
-plot(t, pos, 'k', t, x(:, 1), 'r-', t, x(:, 2), 'g', t, x(:, 3), 'b', t, x(:, 4), 'm--');
-legend('x', 'dx', 'ddx', 'theta', 'dtheta');
+plot(t, x(:, 1), 'r-', t, x(:, 2), 'g', t, x(:, 3), 'b', t, x(:, 4), 'm--');
+legend('x', 'dx', 'theta', 'dtheta');
 xlabel('Tiempo');
 ylabel('Estados');
 title('Estados reales');

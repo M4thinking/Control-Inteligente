@@ -17,4 +17,5 @@ dx=[x(2);
     x(4);
     ((m+M)*g*Sx - Cx*(m*L*x(4)^2*Sx - d*x(2)) - Cx*u)/D
     ];
+dx = dx + x;
 end
