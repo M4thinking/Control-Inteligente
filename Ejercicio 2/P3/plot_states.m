@@ -18,12 +18,11 @@ ylabel('v');
 title('Velocidad v/s Tiempo');
 % Subplot 3: Salida real + Referencia
 subplot(5, 1, 3);
+plot(t, x(:, 3), 'r-', t, ref(1:101), 'b.-');
 legend('Salida', 'Referencia');
 xlabel('Tiempo');
 ylabel('theta');
 title('Ángulo v/s Tiempo');
-plot(t, x(:, 3), 'r-', t, ref(1:101), 'b.-');
-
 % Subplot 4: Variación de la entrada
 subplot(5, 1, 4);
 plot(t, x(:, 4), 'r-');
