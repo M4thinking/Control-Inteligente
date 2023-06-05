@@ -13,7 +13,7 @@ Tf = 10; % Tiempo final en segundos
 
 % Loop de control
 Ncontrol = Tf/Ts; % Número de pasos de control
-Npred = 4; % Horizonde de prediccion
+Npred = 7; % Horizonde de prediccion
 
 % Vectores para almacenar los resultados
 x_vec = zeros(Ncontrol+1, 4); % Estados
@@ -30,7 +30,7 @@ freq = 1; % Frecuenia sinusoide
 t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
 t_ref = 0:Ts:(Tf+Npred*Ts); % Vector de tiempo para la referencia a futuro
 ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
-ref2 = pi+pi/2*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
+ref2 = pi+pi/4*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
 
 % Graficamos
 figure(1)
@@ -44,10 +44,36 @@ title('Referencias')
 grid on
 hold off;
 
+%% Parte c.0) Tuneo de parámetros
+freq = 1; % Frecuenia sinusoide
+Npred_tune = 4:1:12; % Horizonde de prediccion
+theta_ref = ref2; % MODIFICAR REFERENCIA
+for i = 1:numel(Npred_tune)
+    t_ref = 0:Ts:(Tf+Npred*Ts); % Vector de tiempo para la referencia a futuro
+    ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
+    ref2 = pi+pi/4*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
+    Npred = Npred_tune(i);
+    u0 = zeros(Npred, 1);  % Solución propuesta inicial
+    for k = 1:Ncontrol
+        % Ejecutar control predictivo
+        next_ref = theta_ref(k+1:k+Npred)';
+        [u_next, u0] = control_predictivo(Npred,model,u0,x0,u_prev,next_ref);
+        % Calcular el estado en el siguiente paso utilizando el modelo
+        x_next = model(u_next, x0);
+        % Actualizar valores para el siguiente paso de control
+        x0 = x_next;
+        u_prev = u_next;
+        x_vec(k+1, :) = x_next';
+        y_vec(k+1) = x_next(3);
+        u_vec(k) = u_next;
+    end
+    % Graficar
+    plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
+end
 
 %% Parte c) Controlador predictivo fenomenológico
 theta_ref = ref2; % MODIFICAR REFERENCIA
-u0 = zeros(Npred, 1);  % Solución propuesta inicial
+u0 = ones(Npred, 1);  % Solución propuesta inicial
 for k = 1:Ncontrol
     % Ejecutar control predictivo
     next_ref = theta_ref(k+1:k+Npred)';
@@ -63,14 +89,12 @@ for k = 1:Ncontrol
 end
 
 %% Graficar
-plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
-
 plot_states(t_vec, x_vec, u_vec, theta_ref, Ncontrol)
 
 %% Generar gif
 m = 1; M = 5; L = 2;
 
-t_vec_interp = 0:0.05:10;
+t_vec_interp = 0:0.005:10;
 x_vec_interp = interp1(t_vec, x_vec, t_vec_interp, 'spline');% Interpolación con spline para mas fluidez en el gif
 plot_gif(t_vec_interp,x_vec_interp,m,M,L,'Control predictivo')
 
@@ -85,7 +109,7 @@ Tf = 10; % Tiempo final en segundos
 
 % Loop de control
 Ncontrol = Tf/Ts; % Número de pasos de control
-Npred = 5; % Horizonde de prediccion
+Npred = 7; % Horizonde de prediccion
 
 % Vectores para almacenar los resultados
 x_vec = zeros(Ncontrol+1, 4); % Estados

@@ -16,5 +16,5 @@ function cost = objective(u, u_prev, model, x0, ref, n)
     y_pred = X(3, :)';
 
     % Calcular la función objetivo (puede ser cualquier criterio deseado)
-    cost = sum((y_pred(2:end)-ref).^2) + 0.005*sum(du.^2);
+    cost = sum((y_pred(2:end)-ref).^2) + 0.0000001*sum(du.^2);
 end

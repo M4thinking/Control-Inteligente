@@ -4,10 +4,10 @@ function [u_next, u0] = control_predictivo(n, model, u0, x0, u_prev, ref)
     b = [];
     Aeq = [];
     beq = [];
-    lb = -40 * ones(n, 1);  % Límite inferior de u
-    ub = 40 * ones(n, 1);   % Límite superior de u
-    dumin = -30;
-    dumax = 30;
+    lb = -50 * ones(n, 1);  % Límite inferior de u
+    ub = 50 * ones(n, 1);   % Límite superior de u
+    dumin = -20;
+    dumax = 20;
     % Llamada a fmincon para optimizar la función objetivo
     nonlcon = @(u) nonlcon_cart(u_prev, u, dumin, dumax, n);
     options = optimoptions('fmincon', 'Display', 'off');
