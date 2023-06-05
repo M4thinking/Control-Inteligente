@@ -68,7 +68,7 @@ plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
 %% Generar gif
 m = 1; M = 5; L = 2;
 
-t_vec_interp = 0:0.005:10;
+t_vec_interp = 0:0.05:10;
 x_vec_interp = interp1(t_vec, x_vec, t_vec_interp, 'spline');% Interpolación con spline para mas fluidez en el gif
 plot_gif(t_vec_interp,x_vec_interp,m,M,L,'Control predictivo')
 
