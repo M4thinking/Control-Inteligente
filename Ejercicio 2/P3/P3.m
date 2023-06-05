@@ -13,7 +13,7 @@ Tf = 10; % Tiempo final en segundos
 
 % Loop de control
 Ncontrol = Tf/Ts; % Número de pasos de control
-Npred = 10; % Horizonde de prediccion
+Npred = 4; % Horizonde de prediccion
 
 % Vectores para almacenar los resultados
 x_vec = zeros(Ncontrol+1, 4); % Estados
@@ -65,7 +65,7 @@ end
 %% Graficar
 plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
 
-plot_states(t_vec, x_vec, u_vec, theta_ref)
+plot_states(t_vec, x_vec, u_vec, theta_ref, Ncontrol)
 
 %% Generar gif
 m = 1; M = 5; L = 2;
@@ -85,7 +85,7 @@ Tf = 10; % Tiempo final en segundos
 
 % Loop de control
 Ncontrol = Tf/Ts; % Número de pasos de control
-Npred = 10; % Horizonde de prediccion
+Npred = 5; % Horizonde de prediccion
 
 % Vectores para almacenar los resultados
 x_vec = zeros(Ncontrol+1, 4); % Estados
@@ -97,7 +97,7 @@ x_vec(1, :) = x0';
 y_vec(1) = x0(3);
 u_prev = 0;
 %% Parte f) Controlador predictivo fenomenológico con incertezas
-theta_ref = ref1; % MODIFICAR REFERENCIA
+theta_ref = ref2; % MODIFICAR REFERENCIA
 u0 = zeros(Npred, 1);  % Solución propuesta inicial
 for k = 1:Ncontrol
     % Ejecutar control predictivo
@@ -105,12 +105,11 @@ for k = 1:Ncontrol
     [u_next, u0] = control_predictivo(Npred,model,u0,x0,u_prev,next_ref);
     % Ruido gaussiano
     media = 0;         % Media del ruido
-    desviacion = 1;  % Desviación estándar del ruido
+    desviacion = 0.2;  % Desviación estándar del ruido
     % Generar ruido blanco gaussiano
     ruido = desviacion*(randn(size(1))+media);
     % Calcular el estado en el siguiente paso utilizando el modelo + ruido
-    u_next_pert = u_next + ruido;
-    x_next = model(u_next_pert, x0);
+    x_next = model(u_next, x0) + [0;0;ruido;0];
     % Actualizar valores para el siguiente paso de control
     x0 = x_next;
     u_prev = u_next;
@@ -122,7 +121,7 @@ end
 %% Graficar
 plots(t_vec, x_vec, y_vec, u_vec, theta_ref, Ncontrol);
 
-plot_states(t_vec, x_vec, u_vec, ref1)
+plot_states(t_vec, x_vec, u_vec, theta_ref, Ncontrol)
 
 %% Generar gif
 m = 1; M = 5; L = 2;
