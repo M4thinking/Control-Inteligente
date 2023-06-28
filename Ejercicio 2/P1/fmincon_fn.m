@@ -12,11 +12,11 @@ Z = -abs(sin(X).*cos(Y).*exp(abs(1 - (sqrt(X.^2 + Y.^2)/pi))));
 
 % Graficar la función
 surf(X, Y, Z);
-title('Gráfico de la función');
+title('Función Objetivo');
 xlabel('x');
 ylabel('y');
 zlabel('f(x, y)');
-
+%%
 % Definir la función
 fun = @(x) -abs(sin(x(1))*cos(x(2))*exp(abs(1 - (sqrt(x(1)^2 + x(2)^2)/pi))));
 
@@ -91,9 +91,9 @@ disp(['Punto de solución encontrado: [', num2str(x_opt_5(1)), ', ', num2str(x_o
 disp(['Tiempo de ejecución: ', num2str(tiempo_ejecucion_5), ' segundos']);
 disp('---------------------------------------------------')
 
-%% b) Optimizar mediante PSO (aquí pidió el máximo, sus ¬¬)
+%% b) Optimizar mediante PSO 
 
-fun = @(x) abs(sin(x(1))*cos(x(2))*exp(abs(1 - (sqrt(x(1)^2 + x(2)^2)/pi))));
+fun = @(x) -abs(sin(x(1))*cos(x(2))*exp(abs(1 - (sqrt(x(1)^2 + x(2)^2)/pi))));
 
 % Definir los límites de las variables x e y
 lb = [-10, -10]; % Límites inferiores
