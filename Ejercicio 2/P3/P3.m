@@ -28,7 +28,7 @@ u_prev = 0;
 %% Parte b) Crear dos referencias
 freq = 1; % Frecuenia sinusoide
 t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
-t_ref = 0:Ts:(Tf+Npred*Ts); % Vector de tiempo para la referencia a futuro
+t_ref = 0:Ts:(Tf+(Npred+1)*Ts); % Vector de tiempo para la referencia a futuro
 ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
 ref2 = pi+pi/4*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
 
@@ -47,12 +47,12 @@ hold off;
 %% Parte c.0) Tuneo de parámetros
 freq = 1; % Frecuenia sinusoide
 Npred_tune = 4:1:12; % Horizonde de prediccion
-theta_ref = ref2; % MODIFICAR REFERENCIA
 for i = 1:numel(Npred_tune)
-    t_ref = 0:Ts:(Tf+Npred*Ts); % Vector de tiempo para la referencia a futuro
+    Npred = Npred_tune(i);
+    t_ref = 0:Ts:(Tf+(Npred+1)*Ts); % Vector de tiempo para la referencia a futuro
     ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
     ref2 = pi+pi/4*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
-    Npred = Npred_tune(i);
+    theta_ref = ref2; % MODIFICAR REFERENCIA
     u0 = zeros(Npred, 1);  % Solución propuesta inicial
     for k = 1:Ncontrol
         % Ejecutar control predictivo
@@ -72,6 +72,11 @@ for i = 1:numel(Npred_tune)
 end
 
 %% Parte c) Controlador predictivo fenomenológico
+Npred = 7; % Horizonde de prediccion
+t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
+t_ref = 0:Ts:(Tf+(Npred+1)*Ts); % Vector de tiempo para la referencia a futuro
+ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
+ref2 = pi+pi/4*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
 theta_ref = ref2; % MODIFICAR REFERENCIA
 u0 = ones(Npred, 1);  % Solución propuesta inicial
 for k = 1:Ncontrol
