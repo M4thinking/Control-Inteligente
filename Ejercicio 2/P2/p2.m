@@ -69,7 +69,7 @@ x_optim_test = X_test(:, sort(best_indices, 'ascend'));
 x_optim_val = X_val(:, sort(best_indices, 'ascend'));
 
 %% Entrenar modelo
-[model, ~] = TakagiSugeno(Y_train, x_optim_ent, rules, [1 2 2]);
+[model, ~] = TakagiSugeno(Y_train, x_optim_ent, rules, [1 2 1]);
 
 %% Predicciones
 y_hat_ent = ysim(x_optim_ent, model.a, model.b, model.g);
@@ -142,8 +142,8 @@ HVAC=@(x,u,Ta,w,Ts) HVAC_dis(x,u,Ta,w,Ts);
 x0 = [2;2]; %cuales serían las condiciones iniciales de esto?
 
 % Tiempos de simulacion
-Ts = 10; % Tiempo de muestreo
-Tf = 10800; % Tiempo final 
+Ts = 600; % Tiempo de muestreo
+Tf = 12000; % Tiempo final 
 % Loop de control
 Ncontrol = Tf/Ts; % Número de pasos de control
 Npred = 5; % Horizonde de prediccion
@@ -183,7 +183,7 @@ for k = 1:Ncontrol-Npred
     
     % Ejecutar control predictivo
     next_ref = ref(k+1:k+Npred)';
-    [u_next, u0] = control_predictivo(Npred,HVAC,u0,x0,u_prev,next_ref,Ta(k),w,Ts);
+    [u_next, u0] = control_predictivo(Npred,HVAC,u0,x0,u_prev,next_ref,Ta(k),w(:,k),Ts);
     % Calcular el estado en el siguiente paso utilizando el modelo
 
     x_next = HVAC(x0,u_next,Ta(k),w(:,k),Ts);
@@ -200,7 +200,7 @@ plots(t_vec, x_vec, y_vec, u_vec, ref, Ncontrol);
 
 
 
-%%
+%% parte c)
 
 
 

@@ -9,7 +9,7 @@ function cost = objective(u, u_prev, model, x0, ref, n,Ta,w,Ts)
     % Aplicar el modelo de forma iterativa
     X(:, 1) = x0;
     for i = 1:n
-        X(:,i+1) = model(X(:,i),u(i),Ta,w(:,i),Ts);
+        X(:,i+1) = model(X(:,i),u(i),Ta,w,Ts);
     end
 
     % Extraer los valores predichos de la salida (theta) y la entrada (u)
