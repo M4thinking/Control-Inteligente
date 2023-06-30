@@ -142,8 +142,8 @@ HVAC=@(x,u,Ta,w,Ts) HVAC_dis(x,u,Ta,w,Ts);
 x0 = [2;2]; %cuales serían las condiciones iniciales de esto?
 
 % Tiempos de simulacion
-Ts = 1; % Tiempo de muestreo
-Tf = 120; % Tiempo final 
+Ts = 10; % Tiempo de muestreo
+Tf = 10800; % Tiempo final 
 % Loop de control
 Ncontrol = Tf/Ts; % Número de pasos de control
 Npred = 5; % Horizonde de prediccion
@@ -160,46 +160,40 @@ u_prev = 0;
 
 % Creacion de referencias
 
-ref1 = 20; % Referencia 1 
-ref2 = 18; % Referencia 2 
-ref3 = 25; % Referencia 3 
 
-
+t_ref = 0:Ts:(Tf+Npred*Ts); % Vector de tiempo para la referencia a futuro
 t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
-t_ref = 0:Ts:(Tf+Npred*Ts);
-Npred_tune = 6:1:20; % Horizonde de prediccion
-ref = ref2*ones(1,numel(t_ref)); % MODIFICAR REFERENCIA
 
-for i = 1:numel(Npred_tune)
+ref1 = 20*ones(1,numel(t_ref)/3); % Referencia 1 
+ref2 = 18*ones(1,numel(t_ref)/3); % Referencia 2 
+ref3 = 25*ones(1,numel(t_ref)/3); % Referencia 3 
+
+ref=[ref1,ref2,ref3];
+
+u0 = zeros(Npred, 1);  % Solución propuesta inicial
+Ta=ysimn(x_optim_val(1:Ncontrol,:),model,Npred);
     
-    t_ref = 0:Ts:(Tf+Npred*Ts); % Vector de tiempo para la referencia a futuro
-    ref = ref1*ones(1,numel(t_ref)); % Referencia 1 (constante = 20)
-    Npred = Npred_tune(i);
-    u0 = zeros(Npred, 1);  % Solución propuesta inicial
-    Ta=ysimn(x_optim_val(1:Ncontrol,:),model,Npred);
+%noise
+var=0.001;
+w1=wgn(1,Ncontrol,var,'linear' );
+w2=wgn(1,Ncontrol,var,'linear' );
+w=[w1;w2];
+
+for k = 1:Ncontrol-Npred
     
-    %noise
-    var=0.001;
-    w1=wgn(1,Ncontrol,var,'linear' );
-    w2=wgn(1,Ncontrol,var,'linear' );
-    w=[w1;w2];
-    for k = 1:Ncontrol       
-        % Ejecutar control predictivo
-        next_ref = ref(k+1:k+Npred)';
-        [u_next, u0] = control_predictivo(Npred,HVAC,u0,x0,u_prev,next_ref,Ta(k),w,Ts);
-        % Calcular el estado en el siguiente paso utilizando el modelo
+    % Ejecutar control predictivo
+    next_ref = ref(k+1:k+Npred)';
+    [u_next, u0] = control_predictivo(Npred,HVAC,u0,x0,u_prev,next_ref,Ta(k),w,Ts);
+    % Calcular el estado en el siguiente paso utilizando el modelo
 
-        x_next = HVAC(x0,u_next,Ta(k),w(:,k),Ts);
-        % Actualizar valores para el siguiente paso de control
-        x0 = x_next;
-        u_prev = u_next;
-        x_vec(k+1, :) = x_next';
-        y_vec(k+1) = x_next(1);
-        u_vec(k) = u_next;
+    x_next = HVAC(x0,u_next,Ta(k),w(:,k),Ts);
+    % Actualizar valores para el siguiente paso de control
+    x0 = x_next;
+    u_prev = u_next;
+    x_vec(k+1, :) = x_next';
+    y_vec(k+1) = x_next(1);
+    u_vec(k) = u_next;
 
-    end
-    % Graficar
-disp(i)
 end
 
 plots(t_vec, x_vec, y_vec, u_vec, ref, Ncontrol);
