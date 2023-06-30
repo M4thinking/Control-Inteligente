@@ -161,12 +161,12 @@ u_prev = 0;
 % Creacion de referencias
 
 
-t_ref = 0:Ts:(Tf+Npred*Ts); % Vector de tiempo para la referencia a futuro
+t_ref = 0:Ts:Tf; % Vector de tiempo para la referencia a futuro
 t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
 
-ref1 = 20*ones(1,numel(t_ref)/3); % Referencia 1 
-ref2 = 18*ones(1,numel(t_ref)/3); % Referencia 2 
-ref3 = 25*ones(1,numel(t_ref)/3); % Referencia 3 
+ref1 = 20*ones(1,round(numel(t_ref)/3)); % Referencia 1 
+ref2 = 18*ones(1,round(numel(t_ref)/3)); % Referencia 2 
+ref3 = 25*ones(1,round(numel(t_ref)/3)); % Referencia 3 
 
 ref=[ref1,ref2,ref3];
 
@@ -182,7 +182,7 @@ w=[w1;w2];
 for k = 1:Ncontrol-Npred
     
     % Ejecutar control predictivo
-    next_ref = ref(k+1:k+Npred)';
+    next_ref = ref(k)*ones(Npred,1);
     [u_next, u0] = control_predictivo(Npred,HVAC,u0,x0,u_prev,next_ref,Ta(k),w(:,k),Ts);
     % Calcular el estado en el siguiente paso utilizando el modelo
 
