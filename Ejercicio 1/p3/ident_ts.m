@@ -25,8 +25,8 @@ dtheta=salida(:,4);
 plot(sin(theta));
 
 porcentajes=[0.6,0.2,0.2];
-[y ,x] = autoregresores(entrada,sin(theta),max_regs);
-[Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos(y, x, porcentajes);
+[y ,x] = autoregresores_v2(entrada,sin(theta),max_regs);
+[Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos_v2(y, x, porcentajes);
 %% Optimizar modelo - Reglas
 [err_test, err_ent] = clusters_optimo(Y_test, Y_ent, X_test, X_ent, max_clusters);
 figure()

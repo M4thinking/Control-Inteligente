@@ -1,0 +1,17 @@
+Importante:
+
+- Se recomienda mantener todos los archivos de esta carpeta en la misma ubicación de sus resultados
+
+- Para simular la planta basta con cargar los datos de "temperatura_10min.m" en el workspace y luego
+  correr el archivo "SimulinkHvac.slx" adjunto.
+
+- El archivo simulink fue diseñado con la versión de matlab 2018a por lo que si su versión es más
+  antigua contacte con los ayudantes lo antes posible.
+
+- Recuerde revisar si su versión de Matlab contiene las funciones necesarias para operar los algoritmos
+  evolutivos y si no deberá actualizarla.
+
+-  Si presenta cualquier incoveniente con el archivo simulink porfavor comuníquese con el equipo docente
+
+
+
