@@ -6,7 +6,7 @@ function cost = objective(u_prox, a,b,g, x0, r, Ta_prev,Ts)
     for i = 1:n
         Ta_vec(i) = ysim(Ta_prev, a, b, g);
         % Borrar Ta_prev mediante un shift
-        Ta_prev = [Ta_prev(2:end) Ta_vec(i)];
+        Ta_prev = [Ta_vec(i) Ta_prev(1:end-1)];
     end
     % Simulación de la planta con el modelo estimado
     X = zeros(numel(x0), n+1);  % Matriz de estado

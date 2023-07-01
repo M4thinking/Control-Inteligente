@@ -52,6 +52,7 @@ legend('Error de test', 'Error de entrenamiento')
 title('Error en Función del Número de Reglas');
 xlabel('Número de Reglas')
 ylabel('Error Cuadrático Medio')
+hold off
 
 %% Optimizar modelo - Regresores
 rules = 2; % Criterio anterior
@@ -142,22 +143,22 @@ x0 = [2;2]; %cuales serían las condiciones iniciales de esto?
 % Tiempo de muestreo de 10 minutos
 Ts = 10*60; % [s]
 Tf = 3*60*60; % [s] 3 horas
-N = Tf/Ts; % Número de pasos de simulación
+N = Tf/Ts+1; % Número de pasos de simulación
 
-t_ref = 1:Ts:Tf; % Vector de tiempo para la referencia a futuro
-t_vec = 1:Ts:Tf; % Vector de tiempo para los resultados
+t_ref = 0:Ts:Tf; % Vector de tiempo para la referencia a futuro
+t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
 
-ref1 = 20*ones(1,round(numel(t_ref)/3)); % Referencia 1
+ref1 = 20*ones(1,1+round(numel(t_ref)/3)); % Referencia 1
 ref2 = 18*ones(1,round(numel(t_ref)/3)); % Referencia 2
 ref3 = 25*ones(1,round(numel(t_ref)/3)); % Referencia 3
-refs = [ref1, ref2, ref3];
+refs = [ref1 ref2 ref3];
 % crear objeto signal 
 ref = timeseries(refs, t_ref);
 
 % Generar señal de temperatura ambiente
 % Señal de temperatura ambiente
+
 Tamb = timeseries(temperatura(1:N, 2), t_vec);
- 
 
 % Enviar a simulink como una señal (from workspace)
 
@@ -175,26 +176,27 @@ set_param('Hvac_control/From Workspace','SampleTime','Ts');
 % Run simulation
 out = sim('Hvac_control.slx');
 %%
-ref_sim = squeeze(yout{1}.Values.Data);
-u_sim = yout{2}.Values.Data;
-y_sim = yout{3}.Values.Data;
-t_sim = yout{1}.Values.Time;
+ref_sim = squeeze(ref.Data);
+u_sim = U;
+y_sim = T1;
+t_sim = ref.Time;
 
 % Graficar resultados , subplot 1: ref + y, subplot 2: u
 figure()
 subplot(2,1,1)
-plot(t_sim, ref_sim, 'b-')
+plot(t_ref, ref_sim, 'r-')
 hold on
-plot(t_sim, y_sim, 'r-')
+plot(t_sim, y_sim, 'b-')
 legend('Referencia', 'Salida')
 xlabel('Tiempo [s]')
 ylabel('Temperatura [°C]')
 title('Simulación de sistema HVAC')
 hold off
 subplot(2,1,2)
-plot(t_sim, u_sim, 'b-')
+% formato stairs
+stairs(t_sim, u_sim, 'b-')
 xlabel('Tiempo [s]')
-ylabel('Potencia [W]')
+ylabel('PFlujo másico')
 title('Potencia de HVAC')
 hold off
 
