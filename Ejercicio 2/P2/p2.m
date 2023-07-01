@@ -197,8 +197,8 @@ subplot(2,1,2)
 % formato stairs
 stairs(t_sim, u_sim, 'b-')
 xlabel('Tiempo [s]')
-ylabel('PFlujo másico')
-title('Potencia de HVAC')
+ylabel('Flujo másico')
+title('Flujo en HVAC')
 hold off
 
 %%
