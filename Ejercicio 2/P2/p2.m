@@ -125,7 +125,7 @@ for i=1:NNpreds
     hold on;
     % Misma escala para todos los gráficos
     xlim([0,1000]); % Para visualizar mejor
-    title(['Predicción en entrenamiento - Modelo Difuso - ', num2str(Npred), ' pasos'])
+    title(['Predicción en test - Modelo Difuso - ', num2str(Npred), ' pasos'])
     xlabel('Tiempo')
     ylabel('Salida')
     legend('Valor esperado', 'Valor real')
