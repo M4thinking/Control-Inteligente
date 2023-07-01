@@ -2,11 +2,11 @@
 clear; clc; addpath("Toolbox TS NN/Toolbox difuso")
 load('temperatura_10min.mat')
 
-
 %% Creacion de la APRBS y la fijacion de temperatura como un timeSeries
 
-Tfinal=length(temperatura');
-Ts=1;
+Tfinal=length(temperatura'); % muestra cada 10min
+% se muestrea cada 10min
+Ts=1; % 10min para el modelo de prediccion de temperatura
 aprbs=aprbsGen(Tfinal,Ts);
 
 
@@ -42,7 +42,7 @@ entrada=zeros(length(temperatura(:,2)),1);
 %% Optimizar modelo - Reglas
 
 
-% corte solo para tomar los regresores pertenecient
+% corte solo para tomar los regresores pertenecient (solo regs de y en X)
 [err_test, err_ent] = clusters_optimo(Y_test,Y_train,X_test(:,1:max_regs), X_train(:,1:max_regs), max_clusters);
 figure()
 plot(err_test, 'b')
@@ -54,9 +54,9 @@ xlabel('Número de Reglas')
 ylabel('Error Cuadrático Medio')
 
 %% Optimizar modelo - Regresores
-rules = 7; % Criterio anterior
+rules = 2; % Criterio anterior
 [p, indices] = sensibilidad(Y_train, X_train(:,1:max_regs),rules); % rules = numero de clusters
-n_regresores = 4; % Cambiar valor para mayor o menor número de regresores
+n_regresores = 3; % Cambiar valor para mayor o menor número de regresores
 best_indices = [];
 for i=1:n_regresores % Descartamos peor regresor
     [~, idx] = max(indices);
@@ -82,8 +82,8 @@ hold on
 plot(y_hat_val, 'r')
 
 legend('Valor real', 'Valor esperado')
-xlabel('Tiempo')
-ylabel('Salida')
+xlabel('Tiempo [min]')
+ylabel('Salida T°')
 hold off
 
 
@@ -96,7 +96,6 @@ z = x_optim_test;
 y = Y_test;
 Npreds = [1,5, 10];
 NNpreds = length(Npreds);
-Nregs = size(z,2)/2;
 %y_hat_ent = my_ann_evaluation(net_optim_structure, predict');
 %size(predict)
 figure()
@@ -134,68 +133,72 @@ hold off
 
 
 %% Seccion b)
-
-% creamos modelo discreto de la planta entegrada
-
-HVAC=@(x,u,Ta,w,Ts) HVAC_dis(x,u,Ta,w,Ts);
-
+a = model.a;
+b = model.b;
+g = model.g;
 x0 = [2;2]; %cuales serían las condiciones iniciales de esto?
 
 % Tiempos de simulacion
-Ts = 600; % Tiempo de muestreo
-Tf = 12000; % Tiempo final 
-% Loop de control
-Ncontrol = Tf/Ts; % Número de pasos de control
-Npred = 5; % Horizonde de prediccion
+% Tiempo de muestreo de 10 minutos
+Ts = 10*60; % [s]
+Tf = 3*60*60; % [s] 3 horas
+N = Tf/Ts; % Número de pasos de simulación
 
-% Vectores para almacenar los resultados
-x_vec = zeros(Ncontrol+1, 2); % Estados
-y_vec = zeros(Ncontrol+1, 1); % Salida (theta)
-u_vec = zeros(Ncontrol, 1);   % Entrada anterior
+t_ref = 1:Ts:Tf; % Vector de tiempo para la referencia a futuro
+t_vec = 1:Ts:Tf; % Vector de tiempo para los resultados
 
-% Inicializamos el sistema
-x_vec(1, :) = x0';
-y_vec(1) = x0(1);
-u_prev = 0;
+ref1 = 20*ones(1,round(numel(t_ref)/3)); % Referencia 1
+ref2 = 18*ones(1,round(numel(t_ref)/3)); % Referencia 2
+ref3 = 25*ones(1,round(numel(t_ref)/3)); % Referencia 3
+refs = [ref1, ref2, ref3];
+% crear objeto signal 
+ref = timeseries(refs, t_ref);
 
-% Creacion de referencias
+% Generar señal de temperatura ambiente
+% Señal de temperatura ambiente
+Tamb = timeseries(temperatura(1:N, 2), t_vec);
+ 
 
+% Enviar a simulink como una señal (from workspace)
 
-t_ref = 0:Ts:Tf; % Vector de tiempo para la referencia a futuro
-t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
+%%
+% Aplicar simulacion de Hvac_control.slx
 
-ref1 = 20*ones(1,round(numel(t_ref)/3)); % Referencia 1 
-ref2 = 18*ones(1,round(numel(t_ref)/3)); % Referencia 2 
-ref3 = 25*ones(1,round(numel(t_ref)/3)); % Referencia 3 
+% Add model to simulink
+open_system('Hvac_control.slx');
+% Tiempos
+% Simular en tiempo continuo
+set_param('Hvac_control','Solver','ode45');
+set_param('Hvac_control','StartTime','0');
+set_param('Hvac_control','StopTime','Tf');
+set_param('Hvac_control/From Workspace','SampleTime','Ts');
+% Run simulation
+out = sim('Hvac_control.slx');
+%%
+ref_sim = squeeze(yout{1}.Values.Data);
+u_sim = yout{2}.Values.Data;
+y_sim = yout{3}.Values.Data;
+t_sim = yout{1}.Values.Time;
 
-ref=[ref1,ref2,ref3];
+% Graficar resultados , subplot 1: ref + y, subplot 2: u
+figure()
+subplot(2,1,1)
+plot(t_sim, ref_sim, 'b-')
+hold on
+plot(t_sim, y_sim, 'r-')
+legend('Referencia', 'Salida')
+xlabel('Tiempo [s]')
+ylabel('Temperatura [°C]')
+title('Simulación de sistema HVAC')
+hold off
+subplot(2,1,2)
+plot(t_sim, u_sim, 'b-')
+xlabel('Tiempo [s]')
+ylabel('Potencia [W]')
+title('Potencia de HVAC')
+hold off
 
-u0 = zeros(Npred, 1);  % Solución propuesta inicial
-Ta=ysimn(x_optim_val(1:Ncontrol,:),model,Npred);
-    
-%noise
-var=0.001;
-w1=wgn(1,Ncontrol,var,'linear' );
-w2=wgn(1,Ncontrol,var,'linear' );
-w=[w1;w2];
-
-for k = 1:Ncontrol-Npred
-    
-    % Ejecutar control predictivo
-    next_ref = ref(k)*ones(Npred,1);
-    [u_next, u0] = control_predictivo(Npred,HVAC,u0,x0,u_prev,next_ref,Ta(k),w(:,k),Ts);
-    % Calcular el estado en el siguiente paso utilizando el modelo
-
-    x_next = HVAC(x0,u_next,Ta(k),w(:,k),Ts);
-    % Actualizar valores para el siguiente paso de control
-    x0 = x_next;
-    u_prev = u_next;
-    x_vec(k+1, :) = x_next';
-    y_vec(k+1) = x_next(1);
-    u_vec(k) = u_next;
-
-end
-
+%%
 plots(t_vec, x_vec, y_vec, u_vec, ref, Ncontrol);
 
 
