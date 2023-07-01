@@ -201,6 +201,19 @@ ylabel('Flujo másico')
 title('Flujo en HVAC')
 hold off
 
+% Print rmse
+disp('RMSE')
+rmse = sqrt(mean((ref_sim - y_sim).^2));
+disp(rmse)
+% Print fit
+disp('FIT') 
+fit = 1 - (rmse/var(ref_sim));
+disp(fit)
+% Print mae
+disp('MAE')
+mae = mean(abs(ref_sim - y_sim));
+disp(mae)
+
 %% parte c) Cambiar el optimizador dentro de controller
 
 
