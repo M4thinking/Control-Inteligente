@@ -201,12 +201,7 @@ ylabel('Flujo másico')
 title('Flujo en HVAC')
 hold off
 
-%%
-plots(t_vec, x_vec, y_vec, u_vec, ref, Ncontrol);
-
-
-
-%% parte c)
+%% parte c) Cambiar el optimizador dentro de controller
 
 
 
