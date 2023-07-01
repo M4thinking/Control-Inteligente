@@ -114,7 +114,7 @@ for i=1:NNpreds
     fit_test_nn = 1 - (error_test_nn/var(y(Npred:end)));
     % MAE 
     mae_test_nn = mean(abs(y(Npred:end) - y_hat));
-    disp(['   MSE val ', ' Fit val  ', 'MAE val'])
+    disp(['   MSE Test ', ' Fit Test  ', 'MAE Test'])
     disp([error_test_nn, fit_test_nn, mae_test_nn])
     subplot(NNpreds,1,i)
     plot((1:length(y_hat)), y_hat, 'r-')
@@ -184,7 +184,8 @@ t_sim = ref.Time;
 % Graficar resultados , subplot 1: ref + y, subplot 2: u
 figure()
 subplot(2,1,1)
-plot(t_ref, ref_sim, 'r-')
+% plot(t_ref, ref_sim, 'r.-')
+stairs(t_ref, ref_sim, 'r-')
 hold on
 plot(t_sim, y_sim, 'b-')
 legend('Referencia', 'Salida')
