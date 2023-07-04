@@ -63,8 +63,6 @@ for i=1:Nnet
     errores(i,1) = errtest;
     errores(i,2) = errent;
     errores(i,3) = i;
-    
-    
 end
 %% grafico error n neuronas
 plot(errores(:,3),errores(:,1), 'r', 'LineWidth', 1.5); 
