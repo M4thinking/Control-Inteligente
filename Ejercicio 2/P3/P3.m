@@ -164,57 +164,110 @@ title('dtheta')
 % Se utiliza la función de pérdida MSE
 % Se utiliza el 70% entrenamiento, 20% validación, 10% test
 
-nn_regs = 10;
-% inputs son los regresores 60 regresores pasados para cada variable
+nn_regs = 60; % inputs son los nn_regs regresores pasados por variable
 x_regs = regresores(x, nn_regs);
-dx_regs = regresores(dx, nn_regs);
 theta_regs = regresores(theta, nn_regs);
-dtheta_regs = regresores(dtheta, nn_regs);
-inputs = [x_regs dx_regs theta_regs dtheta_regs]';
-targets = [x(nn_regs+1:end) dx(nn_regs+1:end) theta(nn_regs+1:end) dtheta(nn_regs+1:end)]';
-[Y_train, X_train, Y_val, X_val, Y_test, X_test] = split_data(targets, inputs, 0.7, 0.2, 0.1);
+entrada = regresores([aprbs(:, 2);0], nn_regs);
+
+
+
+% Modelo NARX para angulo
+inputs_1 = [theta_regs entrada]';
+targets_1 = theta(nn_regs+1:end)';
+[Y_train_1, X_train_1, Y_val_1, X_val_1, Y_test_1, X_test_1] = split_data(targets_1, inputs_1, 0.7, 0.2, 0.1);
+
 % Se calcula la media y desviación estándar de los datos de entrenamiento
-states_mean = mean(X_train, 2);
-states_std = std(X_train, 0, 2);
+states_mean_1 = mean(X_train_1, 2);
+states_std_1 = std(X_train_1, 0, 2);
 % Promedio y desviación estándar de salida
-output_mean = mean(Y_train, 2);
-output_std = std(Y_train, 0, 2);
+output_mean_1 = mean(Y_train_1, 2);
+output_std_1 = std(Y_train_1, 0, 2);
 
 % Se normalizan los datos de entrenamiento
-X_train = (X_train - states_mean)./states_std;
-Y_train = (Y_train - output_mean)./output_std;
+X_train_1 = (X_train_1 - states_mean_1)./states_std_1;
+Y_train_1 = (Y_train_1 - output_mean_1)./output_std_1;
 % Se normalizan los datos de validación
-X_val = (X_val - states_mean)./states_std;
-Y_val = (Y_val - output_mean)./output_std;
+X_val_1 = (X_val_1 - states_mean_1)./states_std_1;
+Y_val_1 = (Y_val_1 - output_mean_1)./output_std_1;
 % Se normalizan los datos de test
-X_test = (X_test - states_mean)./states_std;
-Y_test = (Y_test - output_mean)./output_std;
+X_test_1 = (X_test_1 - states_mean_1)./states_std_1;
+Y_test_1 = (Y_test_1 - output_mean_1)./output_std_1;
+
+
+
+
+% Modelo NARX para posicion
+inputs_2 = [x_regs entrada]';
+targets_2 = x(nn_regs+1:end)';
+[Y_train_2, X_train_2, Y_val_2, X_val_2, Y_test_2, X_test_2] = split_data(targets_2, inputs_2, 0.7, 0.2, 0.1);
+
+% Se calcula la media y desviación estándar de los datos de entrenamiento
+states_mean_2 = mean(X_train_2, 2);
+states_std_2 = std(X_train_2, 0, 2);
+% Promedio y desviación estándar de salida
+output_mean_2 = mean(Y_train_2, 2);
+output_std_2 = std(Y_train_2, 0, 2);
+
+% Se normalizan los datos de entrenamiento
+X_train_2 = (X_train_2 - states_mean_2)./states_std_2;
+Y_train_2 = (Y_train_2 - output_mean_2)./output_std_2;
+% Se normalizan los datos de validación
+X_val_2 = (X_val_2 - states_mean_2)./states_std_2;
+Y_val_2 = (Y_val_2 - output_mean_2)./output_std_2;
+% Se normalizan los datos de test
+X_test_2 = (X_test_2 - states_mean_2)./states_std_2;
+Y_test_2 = (Y_test_2 - output_mean_2)./output_std_2;
+
+
+%% Cantidad de neuronas (angulo)
+Nnet = 100;
+errores_1 = zeros(Nnet,3);
+for i=1:30
+    disp(i)
+    % Se crea la red neuronal con i capas
+    net1 = fitnet(i);
+    % Se configura la función de entrenamiento
+    net1.trainFcn = 'trainscg';
+    net1.trainParam.showWindow=1; % Evita que se abra la ventana de entrenamiento
+    % Se entrena la red neuronal
+    net1 = train(net1, X_train_1, Y_train_1, 'useParallel','yes');
+    % Se simula la red neuronal
+    Y_train_pred_1 = net1(X_train_1);
+    Y_val_pred_1 = net1(X_val_1);
+    % Se calcula el error de la red neuronal
+    errores_1(i,1) = mse(Y_val_1 - Y_val_pred_1);
+    errores_1(i,2) =  mse(Y_train_1 - Y_train_pred_1);
+    errores_1(i,3) = i;
+end
+
+
 
 %% Cantidad de neuronas
 Nnet = 100;
-errores = zeros(Nnet,3);
-for i=4:10
+errores_2 = zeros(Nnet,3);
+for i=1:30
     disp(i)
     % Se crea la red neuronal con i capas
-    mynet = fitnet([i 4]);
+    net2 = fitnet(i);
     % Se configura la función de entrenamiento
-    mynet.trainFcn = 'trainscg';
-    mynet.trainParam.showWindow=1; % Evita que se abra la ventana de entrenamiento
+    net2.trainFcn = 'trainscg';
+    net2.trainParam.showWindow=1; % Evita que se abra la ventana de entrenamiento
     % Se entrena la red neuronal
-    mynet = train(mynet, X_train, Y_train, 'useParallel','yes');
+    net2 = train(net2, X_train_2, Y_train_2, 'useParallel','yes');
     % Se simula la red neuronal
-    Y_train_pred = mynet(X_train);
-    Y_val_pred = mynet(X_val);
+    Y_train_pred_2 = mynet(X_train_2);
+    Y_val_pred_2 = mynet(X_val_2);
     % Se calcula el error de la red neuronal
-    errores(i,1) = mse(Y_val - Y_val_pred);
-    errores(i,2) =  mse(Y_train - Y_train_pred);
-    errores(i,3) = i;
+    errores_2(i,1) = mse(Y_val_2 - Y_val_pred_2);
+    errores_2(i,2) =  mse(Y_train_2 - Y_train_pred_2);
+    errores_2(i,3) = i;
 end
 
+
 %% grafico error n neuronas
-plot(errores(4:10,3),errores(4:10,1), 'r', 'LineWidth', 1.5); 
+plot(errores(1:30,3),errores(1:30,1), 'r', 'LineWidth', 1.5); 
 hold on
-plot(errores(4:10,3),errores(4:10,2), 'b', 'LineWidth', 1.5);
+plot(errores(1:30,3),errores(1:30,2), 'b', 'LineWidth', 1.5);
 title('Error asociado al número de neuronas')
 legend('Error Validación', 'Error Entrenamiento')
 xlabel('Número de Neuronas')
@@ -223,7 +276,7 @@ hold off
 
 %%
 % Se crea la red neuronal con i capas
-mynet = fitnet(6);
+mynet = fitnet(30);
 % Se configura la función de entrenamiento
 mynet.trainFcn = 'trainscg';
 mynet.trainParam.showWindow=1; % Evita que se abra la ventana de entrenamiento
@@ -304,10 +357,10 @@ plot(Y_val_pred(2,:)*output_std(2)+output_mean(2))
 title('dx')
 legend('Real','Predicha')
 subplot(4,1,3)
-plot(Y_val(3,:)*output_std(3)+output_mean(3))
+plot((Y_val(3,:)*output_std(3)+output_mean(3))*180/pi)
 hold on
 % Graficar en grados
-plot(Y_val_pred(3,:)*output_std(3)+output_mean(3))
+plot((Y_val_pred(3,:)*output_std(3)+output_mean(3))*180/pi)
 title('theta')
 legend('Real','Predicha')
 subplot(4,1,4)
