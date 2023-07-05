@@ -8,7 +8,9 @@ Tfinal=1200;
 Ts = 0.1;
 aprbs = aprbsGen(Tfinal, Ts);
 %% Correr simulink
-out = sim('ident_pendcart.slx');
+load('salida.mat', 'aprbs', 'salida');
+entrada = aprbs(:,2);
+%save('salida_ej1.mat', 'salida')
 %% Cargar datos
 % load('datos_ejemplo.mat')
 % 
@@ -43,7 +45,7 @@ theta=salida(:,3);
 dtheta=salida(:,4);
 plot(sin(theta));
 porcentajes=[0.6,0.2,0.2];
-[y ,x]=autoregresores(entrada,theta,max_regs);
+[y ,x]=autoregresores(entrada,x,max_regs);
 [Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos(y, x, porcentajes);
 
 
@@ -75,7 +77,7 @@ ylabel('Error')
 hold off
 
 %% entrenamiento red para optimizar
-Nopt = 2;
+Nopt = 18;
 net_ent = fitnet(Nopt);
 net_ent.trainFcn = 'trainscg';  
 net_ent.trainParam.showWindow=0;
@@ -95,16 +97,17 @@ x_optim_ent = X_ent(:, sort(best_indices, 'ascend'));
 x_optim_test = X_test(:, sort(best_indices, 'ascend'));
 x_optim_val = X_val(:, sort(best_indices, 'ascend'));
 %% entrenamiento red optima
-net_optim = fitnet(4);
+net_optim = fitnet(18);
 net_optim.trainFcn = 'trainscg';  
 net_optim.trainParam.showWindow=0;
 net_optim = train(net_optim,x_optim_ent',Y_ent', 'useParallel','yes');
 %% Guardar la red
 my_net = my_ann_exporter(net_optim);
-save('my_net.mat', 'my_net');
+net_pos = my_net;
+save('net_pos.mat', 'net_pos');
 %% Predicciones
-load('my_net_p3.mat', 'my_net')
-net_optim_structure = my_net;
+load('net_pos.mat', 'net_pos')
+net_optim_structure = net_pos;
 y_hat = my_ann_evaluation(net_optim_structure, x_optim_ent');
 %y_hat = net_optim(x_optim_val')';
 

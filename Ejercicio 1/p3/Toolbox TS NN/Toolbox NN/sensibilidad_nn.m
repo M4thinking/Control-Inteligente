@@ -15,7 +15,7 @@ function [p, indice] = sensibilidad_nn(Xent,net)
     % Salida
     %y_nn = (ynor-y_min).*(x_max-x_min)./(y_max-y_min) + (x_min);
 
-    diff_ynor = net.IW{1}'.*net.LW{2} * (1 - tanh(net.b{1}+net.IW{1}*Xentnor)).^2;
+    diff_ynor = net.IW{1}'.*net.LW{2} * (1 - tanh(net.b{1}+net.IW{1}*Xentnor).^2);
     indice = NaN(1,size(Xent,2));
     for i = 1:size(Xent,2)
         indice(i) = mean(diff_ynor(:,i)).^2 + std(diff_ynor(:,i)).^2;
