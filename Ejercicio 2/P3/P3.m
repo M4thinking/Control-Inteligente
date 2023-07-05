@@ -9,7 +9,7 @@ mem = zeros(3, 60);
 model = @(u, x) pendcart(u, x);
 
 % Condición inicial
-x0 = [0; 0; pi-0.6; 0];  % [x, dx, theta, dtheta]
+x0 = [0; 0; 0; 0];  % [x, dx, theta, dtheta]
 
 % Tiempos de simulacion
 Ts = 0.1; % Tiempo de muestreo
@@ -76,12 +76,14 @@ hold off;
 % end
 
 %% Parte c) Controlador predictivo fenomenológico
+% Condición inicial
+x0 = [0; 0; 0; 0];  % [x, dx, theta, dtheta]
 Npred = 7; % Horizonde de prediccion
 t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
 t_ref = 0:Ts:(Tf+(Npred+1)*Ts); % Vector de tiempo para la referencia a futuro
 ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
 ref2 = pi+pi/4*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
-theta_ref = ref2; % MODIFICAR REFERENCIA
+theta_ref = ref1; % MODIFICAR REFERENCIA
 u0 = ones(Npred, 1);  % Solución propuesta inicial
 for k = 1:Ncontrol
     % Ejecutar control predictivo
@@ -125,10 +127,28 @@ xlabel('Tiempo [s]')
 ylabel('Amplitud [grados]')
 grid on
 hold off;
-%%
-%load('trayectoria_control.mat', 'trayectoria_control')
-%salida = trayectoria_control;
 
+x=salida(:,1);
+dx=salida(:,2);
+theta=salida(:,3);
+dtheta=salida(:,4);
+% Graficar en mismo gráfico 4 subplots
+figure()
+subplot(4,1,1)
+plot(t_vec,x) 
+title('x')
+subplot(4,1,2)
+plot(t_vec,dx)
+title('dx')
+subplot(4,1,3)
+% Graficar en grados
+plot(t_vec,theta*180/pi)
+title('theta')
+subplot(4,1,4)
+plot(t_vec,dtheta)
+title('dtheta')
+
+%%
 nn_regs = 60; % inputs son los nn_regs regresores pasados por variable
 u = salida(:,3);
 
@@ -163,27 +183,12 @@ hold on
 plot(Y_pred_2, 'r-')
 legend('Valor real', 'Valor esperado')
 hold off
-%%
-x=salida(:,1);
-dx=salida(:,2);
-theta=salida(:,3);
-dtheta=salida(:,4);
-% Graficar en mismo gráfico 4 subplots
-figure()
-subplot(4,1,1)
-plot(t_vec,x) 
-title('x')
-subplot(4,1,2)
-plot(t_vec,dx)
-title('dx')
-subplot(4,1,3)
-% Graficar en grados
-plot(t_vec,theta*180/pi)
-title('theta')
-subplot(4,1,4)
-plot(t_vec,dtheta)
-title('dtheta')
-%%
+
+%% 
+% Add model to simulink
+open_system('sistema_controlado.slx');
+x0 = [0; 0; pi; 0];  % [x, dx, theta, dtheta]
+Tf = 100; % Tiempo final en segundos
 Npred = 7; % Horizonde de prediccion
 t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
 t_ref = 0:Ts:(Tf+(Npred+1)*Ts); % Vector de tiempo para la referencia a futuro
@@ -191,7 +196,103 @@ ref1 = pi*ones(1,numel(t_ref)); % Referencia 1 (constante = pi)
 ref2 = pi+pi/4*cos(2*pi*freq*t_ref+pi/2); % Referencia 2 (pi + sinusoidal)
 r = ref1;
 
+% Tiempos
+% Simular en tiempo continuo
+set_param('sistema_controlado','Solver','ode45');
+set_param('sistema_controlado','StartTime','0');
+set_param('sistema_controlado','StopTime','Tf');
+% Run simulation
+out = sim('sistema_controlado.slx');
+%%
+% Graficar out.y (theta), out.x (posicion), out.u (control)
+figure()
+subplot(3,1,1)
+plot(out.tout, out.y*180/pi, 'b-', 'LineWidth', 1)
+legend('Valor real', 'Valor esperado')
+title('Theta')
+subplot(3,1,2)
+plot(out.tout, out.x(:,1), 'b-', 'LineWidth', 1)
+subplot(3,1,3)
+plot(out.tout(6:end), out.u, 'b-', 'LineWidth', 1)
+title('Accion de control')
+hold off
 
+%% Predicciones a N pasos
+z_pred = X_test_1;
+y = Y_test_1;
+net_optim_structure = net_theta;
+Npred = 7;
+Nregs = 60;
+for j=1:Npred
+    y_hat = my_ann_evaluation(net_optim_structure, z_pred');
+    if j < Npred
+        z_pred = [y_hat(1:end-1)', z_pred(1:end-1, 2:Nregs), z_pred(2:end,Nregs+1:end)];
+    end
+end
+
+figure()
+plot(((Npred+1):length(Y_test_1))-Npred, Y_test_1(Npred+1:end)*180/pi, 'b.', 'LineWidth', 1)
+hold on
+plot(y_hat*180/pi, 'r-')
+legend('Valor real', 'Valor esperado')
+hold off
+
+nu1 = 1; % Ponderador del PINAW
+nu2 = 100; % Ponderador del PICP
+nu3 = 0; % Ponderador de la regulación L2 (Mejora -> PICP+ y PINAW-)
+Nneuronas = 15;
+Ns = 2*(Nneuronas+1);
+ss = zeros(Ns, 9);
+% Problema de optimización
+z_pred = X_test_1;
+for j=1:Npred
+    y_hat = my_ann_evaluation(net_optim_structure, z_pred');
+    if j < Npred
+        z_pred = [y_hat(1:end-1)', z_pred(1:end-1, 2:Nregs), z_pred(2:end,Nregs+1:end)];
+    end
+end
+% Problema de optimización
+porcentaje=9; % Optimizamos para cada porcentaje
+% Reemplazamos fobj_fuzzy_nums con los valores conocidos hasta el momento
+J=@(s)f_obj_fuzzy_nums_nn(z_pred,net_optim_structure,s,y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
+% Particle Swarm Optimization y restricciones
+options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
+[sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
+ss(:, porcentaje) = sopt;
+
+% Graficar
+figure()
+porcentaje=9; % Optimizamos para cada porcentaje (al reves para el fill)
+[y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums_nn(z_pred,net_optim_structure,ss(:,porcentaje),y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);
+% Consideramos el PICP y PINAW reales para comparar intervalos
+if porcentaje == 9
+    disp([Npred, PICP, PINAW]);
+end
+t = (1:length(y_hat));
+t2 = [t, fliplr(t)];
+inBetween = [y_sup; flipud(y_inf)];
+fill(t2, inBetween, [0.5 (1-porcentaje/10.0) 1], 'FaceAlpha', (10-porcentaje)/12.0);
+hold on;
+set(findobj(gca,'Type','Patch'),'EdgeColor', 'none'); % Quitar borde del fill
+hold on;
+
+% Graficar puntos reales
+plot(1:length(y), y(1:end),'b.', 'LineWidth', 0.3);
+hold on;
+% Graficar curva de estimación y_hat(k+i-1) (rojo oscuro)
+plot(t, y_hat, 'Color',[0.8 0 0] , 'LineWidth', 0.5);
+hold on;
+
+% Misma escala para todos los gráficos
+xlim([0,1000]); % Para visualizar mejor
+hold on;
+% Configuración de la gráfica
+xlabel('Tiempo'); 
+ylabel('Salida');
+title(sprintf('Modelo con intervalo de incertidumbre - Números difusos - %d pasos', Npred));
+legend('90%',...
+    'y_{val}', 'y_{hat}', 'Orientation','horizontal');
+hold off;
 
 
 %% reinicializacion
