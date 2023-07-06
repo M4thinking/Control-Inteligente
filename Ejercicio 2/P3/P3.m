@@ -2,7 +2,7 @@ clc;clear all
 addpath('utils');
 addpath('Toolbox TS NN/Toolbox difuso');
 addpath('Toolbox TS NN/Toolbox NN');
-global model mem
+global mem
 
 mem = zeros(3, 60);
 %% Parte a) Definir modelo
@@ -155,7 +155,7 @@ u = salida(:,3);
 theta=salida(:,2);
 porcentajes=[0.6,0.2,0.2];
 % Modelo NARX para angulo
-[y ,x]=autoregresores(u,theta,nn_regs);
+[y ,x]=autoregresores(u,theta,30);
 [Y_val_1 , Y_test_1, Y_ent_1, X_val_1, X_test_1, X_ent_1] = separar_datos(y, x, porcentajes);
 
 
@@ -172,6 +172,8 @@ plot(Y_test_1*180/pi, 'b.', 'LineWidth', 1)
 hold on
 plot(Y_pred_1*180/pi, 'r-')
 legend('Valor real', 'Valor esperado')
+ylabel('Theta [grados]')
+title('Theta')
 hold off
 
 
@@ -182,13 +184,16 @@ plot(Y_test_2, 'b.', 'LineWidth', 1)
 hold on
 plot(Y_pred_2, 'r-')
 legend('Valor real', 'Valor esperado')
+ylabel('Posicion [m]')
+title('Posicion')
 hold off
 
 %% 
 % Add model to simulink
 open_system('sistema_controlado.slx');
-x0 = [0; 0; pi; 0];  % [x, dx, theta, dtheta]
-Tf = 100; % Tiempo final en segundos
+x0 = [0; 0; 0; 0];  % [x, dx, theta, dtheta]
+mem = zeros(3,60);
+Tf = 10; % Tiempo final en segundos
 Npred = 7; % Horizonde de prediccion
 t_vec = 0:Ts:Tf; % Vector de tiempo para los resultados
 t_ref = 0:Ts:(Tf+(Npred+1)*Ts); % Vector de tiempo para la referencia a futuro
@@ -208,12 +213,21 @@ out = sim('sistema_controlado.slx');
 figure()
 subplot(3,1,1)
 plot(out.tout, out.y*180/pi, 'b-', 'LineWidth', 1)
+hold on
+plot(t_ref, r*180/pi, 'r--', 'LineWidth', 1)
 legend('Valor real', 'Valor esperado')
+% etiqueta eje y
+ylabel('Theta [grados]')
 title('Theta')
 subplot(3,1,2)
 plot(out.tout, out.x(:,1), 'b-', 'LineWidth', 1)
+% etiqueta eje y
+ylabel('Posicion [m]')
+title('Posicion')
 subplot(3,1,3)
-plot(out.tout(6:end), out.u, 'b-', 'LineWidth', 1)
+stairs(out.tout(4:end), out.u, 'b-', 'LineWidth', 1)
+% etiqueta eje y
+ylabel('Accion de control')
 title('Accion de control')
 hold off
 
@@ -231,9 +245,9 @@ for j=1:Npred
 end
 
 figure()
-plot(((Npred+1):length(Y_test_1))-Npred, Y_test_1(Npred+1:end)*180/pi, 'b.', 'LineWidth', 1)
+plot(((Npred+1):length(Y_test_1))-Npred, Y_test_1(Npred+1:end), 'b.', 'LineWidth', 1)
 hold on
-plot(y_hat*180/pi, 'r-')
+plot(y_hat, 'r-')
 legend('Valor real', 'Valor esperado')
 hold off
 
@@ -245,6 +259,7 @@ Ns = 2*(Nneuronas+1);
 ss = zeros(Ns, 9);
 % Problema de optimización
 z_pred = X_test_1;
+y = Y_test_1;
 for j=1:Npred
     y_hat = my_ann_evaluation(net_optim_structure, z_pred');
     if j < Npred
@@ -260,7 +275,7 @@ options = optimoptions('particleswarm','Display','iter', 'MaxIterations', 100);
 [sopt, ~] = particleswarm(J, Ns, zeros(Ns,1), ones(Ns,1), options);
 ss(:, porcentaje) = sopt;
 
-% Graficar
+%% Graficar
 figure()
 porcentaje=9; % Optimizamos para cada porcentaje (al reves para el fill)
 [y_hat, y_sup, y_inf, PICP, PINAW, Jopt] = eval_fuzzy_nums_nn(z_pred,net_optim_structure,ss(:,porcentaje),y(Npred:end),nu1,nu2,nu3,1-porcentaje/10.0);

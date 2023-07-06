@@ -7,7 +7,7 @@ aprbs = aprbsGen(Tfinal,Ts);
 %% Correr simulink
 sim('ident_pendcart.slx');
 %% Parametros modelo
-max_regs =10;
+max_regs =60;
 max_regs_list = 1:max_regs;
 max_clusters = 20;
 
@@ -22,11 +22,26 @@ x=salida(:,1);
 dx=salida(:,2);
 theta=salida(:,3);
 dtheta=salida(:,4);
-plot(sin(theta));
+t_vec = 0:Ts:Tfinal; % Vector de tiempo para los resultados
+% Graficar en mismo gráfico 4 subplots
+figure()
+subplot(4,1,1)
+plot(t_vec,x) 
+title('x')
+subplot(4,1,2)
+plot(t_vec,dx)
+title('dx')
+subplot(4,1,3)
+% Graficar en grados
+plot(t_vec,theta*180/pi)
+title('theta')
+subplot(4,1,4)
+plot(t_vec,dtheta)
+title('dtheta')
 
 porcentajes=[0.6,0.2,0.2];
-[y ,x] = autoregresores_v2(entrada,sin(theta),max_regs);
-[Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos_v2(y, x, porcentajes);
+[y ,x] = autoregresores(entrada,theta,max_regs);
+[Y_val , Y_test, Y_ent, X_val, X_test, X_ent] = separar_datos(y, x, porcentajes);
 %% Optimizar modelo - Reglas
 [err_test, err_ent] = clusters_optimo(Y_test, Y_ent, X_test, X_ent, max_clusters);
 figure()
